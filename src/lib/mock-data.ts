@@ -1,16 +1,24 @@
-import { Order, Table, MenuItem, StaffMember, DailyMetrics, InventoryItem } from './types';
+import { Order, Table, MenuItem, StaffMember, DailyMetrics, InventoryItem, Promotion, RoleCredentials } from './types';
+
+export const roleCredentials: RoleCredentials[] = [
+  { username: 'admin', password: 'admin123', role: 'admin' },
+  { username: 'manager', password: 'manager123', role: 'manager' },
+  { username: 'chef', password: 'chef123', role: 'chef' },
+  { username: 'waiter', password: 'waiter123', role: 'waiter' },
+  { username: 'billing', password: 'billing123', role: 'billing' },
+];
 
 export const menuItems: MenuItem[] = [
-  { id: 'm1', name: 'Margherita Pizza', category: 'Pizza', price: 12.99, available: true },
-  { id: 'm2', name: 'Caesar Salad', category: 'Salad', price: 8.99, available: true },
-  { id: 'm3', name: 'Grilled Salmon', category: 'Main', price: 22.99, available: true },
-  { id: 'm4', name: 'Mushroom Risotto', category: 'Main', price: 16.99, available: true },
-  { id: 'm5', name: 'Tiramisu', category: 'Dessert', price: 7.99, available: true },
-  { id: 'm6', name: 'Bruschetta', category: 'Starter', price: 6.99, available: true },
-  { id: 'm7', name: 'Penne Arrabbiata', category: 'Pasta', price: 13.99, available: true },
-  { id: 'm8', name: 'Garlic Bread', category: 'Starter', price: 4.99, available: true },
-  { id: 'm9', name: 'Chicken Parmesan', category: 'Main', price: 18.99, available: false },
-  { id: 'm10', name: 'Espresso', category: 'Beverage', price: 3.99, available: true },
+  { id: 'm1', name: 'Margherita Pizza', category: 'Pizza', price: 12.99, available: true, image: '🍕' },
+  { id: 'm2', name: 'Caesar Salad', category: 'Salad', price: 8.99, available: true, image: '🥗' },
+  { id: 'm3', name: 'Grilled Salmon', category: 'Main', price: 22.99, available: true, image: '🐟' },
+  { id: 'm4', name: 'Mushroom Risotto', category: 'Main', price: 16.99, available: true, image: '🍚' },
+  { id: 'm5', name: 'Tiramisu', category: 'Dessert', price: 7.99, available: true, image: '🍰' },
+  { id: 'm6', name: 'Bruschetta', category: 'Starter', price: 6.99, available: true, image: '🥖' },
+  { id: 'm7', name: 'Penne Arrabbiata', category: 'Pasta', price: 13.99, available: true, image: '🍝' },
+  { id: 'm8', name: 'Garlic Bread', category: 'Starter', price: 4.99, available: true, image: '🧄' },
+  { id: 'm9', name: 'Chicken Parmesan', category: 'Main', price: 18.99, available: false, image: '🍗' },
+  { id: 'm10', name: 'Espresso', category: 'Beverage', price: 3.99, available: true, image: '☕' },
 ];
 
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({
@@ -97,6 +105,8 @@ export const dailyMetrics: DailyMetrics = {
   availableTables: 5,
   totalTables: 12,
   avgOrderTime: 18,
+  totalCustomers: 128,
+  avgOrderValue: 103.33,
 };
 
 export const inventory: InventoryItem[] = [
@@ -111,19 +121,25 @@ export const inventory: InventoryItem[] = [
 ];
 
 export const revenueData = [
-  { day: 'Mon', revenue: 3200 },
-  { day: 'Tue', revenue: 4100 },
-  { day: 'Wed', revenue: 3800 },
-  { day: 'Thu', revenue: 4500 },
-  { day: 'Fri', revenue: 5800 },
-  { day: 'Sat', revenue: 6200 },
-  { day: 'Sun', revenue: 4856 },
+  { day: 'Sun', revenue: 3200 },
+  { day: 'Mon', revenue: 4100 },
+  { day: 'Tue', revenue: 3800 },
+  { day: 'Wed', revenue: 4500 },
+  { day: 'Thu', revenue: 5800 },
+  { day: 'Fri', revenue: 6200 },
+  { day: 'Sat', revenue: 4856 },
 ];
 
 export const popularDishes = [
-  { name: 'Margherita Pizza', orders: 42 },
-  { name: 'Grilled Salmon', orders: 35 },
-  { name: 'Mushroom Risotto', orders: 28 },
-  { name: 'Caesar Salad', orders: 24 },
-  { name: 'Penne Arrabbiata', orders: 19 },
+  { name: 'Margherita Pizza', orders: 42, image: '🍕' },
+  { name: 'Grilled Salmon', orders: 35, image: '🐟' },
+  { name: 'Mushroom Risotto', orders: 28, image: '🍚' },
+  { name: 'Caesar Salad', orders: 24, image: '🥗' },
+  { name: 'Penne Arrabbiata', orders: 19, image: '🍝' },
+];
+
+export const promotions: Promotion[] = [
+  { id: 'p1', code: 'WELCOME10', discount: '10%', type: 'percentage', active: true, uses: 23 },
+  { id: 'p2', code: 'LUNCH20', discount: '$20', type: 'fixed', active: true, uses: 45 },
+  { id: 'p3', code: 'HOLIDAY15', discount: '15%', type: 'percentage', active: false, uses: 112 },
 ];

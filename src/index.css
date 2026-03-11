@@ -6,50 +6,54 @@
 
 @layer base {
   :root {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 88%;
+    --background: 220 14% 96%;
+    --foreground: 220 20% 15%;
 
-    --card: 0 0% 13%;
-    --card-foreground: 0 0% 88%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
 
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 88%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 14 100% 62%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 88%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 20% 30%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 0 0% 22%;
-    --accent-foreground: 0 0% 88%;
+    --accent: 220 14% 95%;
+    --accent-foreground: 220 20% 15%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 22%;
-    --input: 0 0% 22%;
-    --ring: 0 0% 100%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 14 100% 62%;
 
-    --radius: 0.375rem;
+    --radius: 0.75rem;
 
-    /* Status colors - "Heat Lamps" */
-    --status-pending: 33 100% 50%;
-    --status-in-progress: 217 91% 60%;
-    --status-ready: 160 84% 39%;
+    /* Status colors */
+    --status-pending: 45 100% 51%;
+    --status-preparing: 24 100% 50%;
+    --status-in-progress: 24 100% 50%;
+    --status-served: 217 91% 60%;
+    --status-ready: 142 71% 45%;
+    --status-completed: 142 71% 45%;
     --status-issue: 0 84% 60%;
+    --status-cancelled: 0 84% 60%;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 88%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 88%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 0 0% 100%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 25%;
+    --sidebar-primary: 14 100% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 14 100% 97%;
+    --sidebar-accent-foreground: 14 100% 40%;
+    --sidebar-border: 220 13% 92%;
+    --sidebar-ring: 14 100% 62%;
   }
 }
 
@@ -63,7 +67,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-mono tracking-tight;
+    @apply font-body tracking-tight;
   }
 }
 
@@ -76,33 +80,25 @@
   }
 }
 
-/* Status Bleed Animation */
-@keyframes status-bleed-pending {
-  0%, 100% { border-color: hsl(0 0% 22%); }
-  50% { border-color: hsl(33 100% 50%); box-shadow: 0 0 20px hsl(33 100% 50% / 0.3); }
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-@keyframes status-bleed-progress {
-  0%, 100% { border-color: hsl(0 0% 22%); }
-  50% { border-color: hsl(217 91% 60%); box-shadow: 0 0 20px hsl(217 91% 60% / 0.3); }
-}
-@keyframes status-bleed-ready {
-  0%, 100% { border-color: hsl(0 0% 22%); }
-  50% { border-color: hsl(160 84% 39%); box-shadow: 0 0 20px hsl(160 84% 39% / 0.3); }
-}
-@keyframes status-bleed-issue {
-  0%, 100% { border-color: hsl(0 0% 22%); }
-  50% { border-color: hsl(0 84% 60%); box-shadow: 0 0 20px hsl(0 84% 60% / 0.3); }
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.animate-bleed-pending {
-  animation: status-bleed-pending 1.5s ease-in-out;
+/* Status badge pulse */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
-.animate-bleed-progress {
-  animation: status-bleed-progress 1.5s ease-in-out;
+.animate-status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
 }
-.animate-bleed-ready {
-  animation: status-bleed-ready 1.5s ease-in-out;
-}
-.animate-bleed-issue {
-  animation: status-bleed-issue 1.5s ease-in-out;
+
+/* Smooth button press */
+.btn-press:active {
+  transform: scale(0.97);
 }
