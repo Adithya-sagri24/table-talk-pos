@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { dailyMetrics, orders, revenueData, popularDishes, inventory, tables, menuItems, staff } from '@/lib/mock-data';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   DollarSign, ClipboardList, Clock, Grid3X3,
-  TrendingUp, AlertTriangle, Package, Users,
+  TrendingUp, AlertTriangle, Package,
 } from 'lucide-react';
 
 function MetricBlock({ label, value, icon: Icon, accent }: { label: string; value: string; icon: typeof DollarSign; accent?: string }) {
@@ -16,6 +17,17 @@ function MetricBlock({ label, value, icon: Icon, accent }: { label: string; valu
       <div className="font-mono text-2xl font-bold">{value}</div>
     </div>
   );
+}
+
+function StatusDot({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    pending: 'bg-status-pending',
+    preparing: 'bg-status-progress',
+    ready: 'bg-status-ready',
+    served: 'bg-muted-foreground',
+    cancelled: 'bg-status-issue',
+  };
+  return <div className={`h-2 w-2 rounded-full ${colors[status] || 'bg-muted-foreground'}`} />;
 }
 
 export default function ManagerDashboard() {
@@ -47,7 +59,6 @@ function ManagerOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
         <div className="border border-border p-5">
           <h3 className="font-mono text-xs font-bold tracking-wider mb-4">WEEKLY REVENUE</h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -55,16 +66,12 @@ function ManagerOverview() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 22%)" />
               <XAxis dataKey="day" tick={{ fill: 'hsl(0 0% 55%)', fontSize: 11, fontFamily: 'Roboto Mono' }} axisLine={false} />
               <YAxis tick={{ fill: 'hsl(0 0% 55%)', fontSize: 11, fontFamily: 'Roboto Mono' }} axisLine={false} />
-              <Tooltip
-                contentStyle={{ background: 'hsl(0 0% 13%)', border: '1px solid hsl(0 0% 22%)', fontFamily: 'Roboto Mono', fontSize: 12 }}
-                labelStyle={{ color: 'hsl(0 0% 88%)' }}
-              />
+              <Tooltip contentStyle={{ background: 'hsl(0 0% 13%)', border: '1px solid hsl(0 0% 22%)', fontFamily: 'Roboto Mono', fontSize: 12 }} labelStyle={{ color: 'hsl(0 0% 88%)' }} />
               <Bar dataKey="revenue" fill="hsl(0 0% 100%)" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Popular Dishes - Horizontal Bar */}
         <div className="border border-border p-5">
           <h3 className="font-mono text-xs font-bold tracking-wider mb-4">POPULAR DISHES</h3>
           <div className="space-y-3">
@@ -77,10 +84,7 @@ function ManagerOverview() {
                     <span className="font-mono text-xs text-muted-foreground">{dish.orders}</span>
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-foreground rounded-full transition-all"
-                      style={{ width: `${(dish.orders / maxOrders) * 100}%` }}
-                    />
+                    <div className="h-full bg-foreground rounded-full transition-all" style={{ width: `${(dish.orders / maxOrders) * 100}%` }} />
                   </div>
                 </div>
               );
@@ -89,7 +93,6 @@ function ManagerOverview() {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div className="border border-border p-5 mt-6">
         <h3 className="font-mono text-xs font-bold tracking-wider mb-4">RECENT ACTIVITY</h3>
         <div className="space-y-2">
@@ -109,7 +112,6 @@ function ManagerOverview() {
         </div>
       </div>
 
-      {/* Low Stock Alerts */}
       {inventory.filter(i => i.isLow).length > 0 && (
         <div className="border border-status-pending p-5 mt-6">
           <h3 className="font-mono text-xs font-bold tracking-wider mb-4 flex items-center gap-2 text-status-pending">
@@ -120,9 +122,7 @@ function ManagerOverview() {
             {inventory.filter(i => i.isLow).map(item => (
               <div key={item.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <span className="font-body text-sm">{item.name}</span>
-                <span className="font-mono text-xs text-status-pending">
-                  {item.quantity} {item.unit} (min: {item.lowThreshold})
-                </span>
+                <span className="font-mono text-xs text-status-pending">{item.quantity} {item.unit} (min: {item.lowThreshold})</span>
               </div>
             ))}
           </div>
@@ -130,17 +130,6 @@ function ManagerOverview() {
       )}
     </div>
   );
-}
-
-function StatusDot({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pending: 'bg-status-pending',
-    preparing: 'bg-status-progress',
-    ready: 'bg-status-ready',
-    served: 'bg-muted-foreground',
-    cancelled: 'bg-status-issue',
-  };
-  return <div className={`h-2 w-2 rounded-full ${colors[status] || 'bg-muted-foreground'}`} />;
 }
 
 function ManagerOrders() {
@@ -151,13 +140,7 @@ function ManagerOrders() {
       <h2 className="font-mono text-lg font-bold tracking-wide mb-4">ORDER MONITORING</h2>
       <div className="flex gap-2 mb-4">
         {['all', 'pending', 'preparing', 'ready', 'served', 'cancelled'].map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 font-mono text-[10px] tracking-wider border transition-colors ${
-              f === filter ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
+          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 font-mono text-[10px] tracking-wider border transition-colors ${f === filter ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
             {f.toUpperCase()}
           </button>
         ))}
@@ -234,9 +217,7 @@ function ManagerInventory() {
               {item.isLow && <AlertTriangle className="h-3.5 w-3.5 text-status-pending" />}
               <span className="font-body text-sm">{item.name}</span>
             </div>
-            <span className="font-mono text-sm">
-              {item.quantity} {item.unit}
-            </span>
+            <span className="font-mono text-sm">{item.quantity} {item.unit}</span>
           </div>
         ))}
       </div>
@@ -319,10 +300,3 @@ function ManagerPromos() {
     </div>
   );
 }
-
-function useState(initial: string): [string, (v: string) => void] {
-  const [state, setState] = __useState(initial);
-  return [state, setState];
-}
-
-import { useState as __useState } from 'react';
