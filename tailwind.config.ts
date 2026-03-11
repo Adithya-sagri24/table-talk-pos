@@ -53,9 +53,13 @@ export default {
         },
         status: {
           pending: "hsl(var(--status-pending))",
+          preparing: "hsl(var(--status-preparing))",
           progress: "hsl(var(--status-in-progress))",
+          served: "hsl(var(--status-served))",
           ready: "hsl(var(--status-ready))",
+          completed: "hsl(var(--status-completed))",
           issue: "hsl(var(--status-issue))",
+          cancelled: "hsl(var(--status-cancelled))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

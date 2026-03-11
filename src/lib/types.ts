@@ -10,6 +10,7 @@ export interface MenuItem {
   category: string;
   price: number;
   available: boolean;
+  image?: string;
 }
 
 export interface OrderItem {
@@ -54,6 +55,8 @@ export interface DailyMetrics {
   availableTables: number;
   totalTables: number;
   avgOrderTime: number;
+  totalCustomers: number;
+  avgOrderValue: number;
 }
 
 export interface InventoryItem {
@@ -63,4 +66,19 @@ export interface InventoryItem {
   unit: string;
   lowThreshold: number;
   isLow: boolean;
+}
+
+export interface Promotion {
+  id: string;
+  code: string;
+  discount: string;
+  type: 'percentage' | 'fixed';
+  active: boolean;
+  uses: number;
+}
+
+export interface RoleCredentials {
+  username: string;
+  password: string;
+  role: UserRole;
 }

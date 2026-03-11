@@ -1,52 +1,78 @@
-import { tables, orders } from '@/lib/mock-data';
-import { OrderStatus, TableStatus } from '@/lib/types';
+import { tables, orders, menuItems } from '@/lib/mock-data';
+import { OrderStatus, TableStatus, Order, OrderItem } from '@/lib/types';
 import { useState } from 'react';
-import { Users, Clock, AlertCircle } from 'lucide-react';
+import { Users, AlertCircle, Plus, X } from 'lucide-react';
+import { StatusBadge } from '@/components/StatusBadge';
+import { CrudModal, FormField, inputClass, selectClass } from '@/components/CrudModal';
 
-const statusColor: Record<TableStatus, string> = {
-  available: 'border-status-ready text-status-ready',
-  occupied: 'border-status-progress text-status-progress',
-  reserved: 'border-status-pending text-status-pending',
-  cleaning: 'border-muted-foreground text-muted-foreground',
-};
-
-const statusLabel: Record<TableStatus, string> = {
-  available: 'AVAILABLE',
-  occupied: 'OCCUPIED',
-  reserved: 'RESERVED',
-  cleaning: 'CLEANING',
+const statusColors: Record<TableStatus, string> = {
+  available: 'bg-status-ready/10 border-status-ready/40 text-status-ready',
+  occupied: 'bg-status-served/10 border-status-served/40 text-status-served',
+  reserved: 'bg-status-pending/10 border-status-pending/40 text-status-pending',
+  cleaning: 'bg-muted border-border text-muted-foreground',
 };
 
 export default function WaiterDashboard() {
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [orderList, setOrderList] = useState(orders);
+  const [showNewOrder, setShowNewOrder] = useState(false);
+  const [newOrderItems, setNewOrderItems] = useState<{ menuItemId: string; quantity: number }[]>([]);
+
   const selectedOrder = selectedTable
-    ? orders.find(o => o.tableNumber === selectedTable && !['served', 'cancelled'].includes(o.status))
+    ? orderList.find(o => o.tableNumber === selectedTable && !['served', 'cancelled'].includes(o.status))
     : null;
 
-  const readyOrders = orders.filter(o => o.status === 'ready');
+  const readyOrders = orderList.filter(o => o.status === 'ready');
+
+  const handleCreateOrder = () => {
+    if (!selectedTable || newOrderItems.length === 0) return;
+    const items: OrderItem[] = newOrderItems.map(ni => ({
+      menuItem: menuItems.find(m => m.id === ni.menuItemId)!,
+      quantity: ni.quantity,
+    })).filter(i => i.menuItem);
+    const total = items.reduce((s, i) => s + i.menuItem.price * i.quantity, 0);
+    const newOrder: Order = {
+      id: `ORD-${Date.now().toString().slice(-3)}`,
+      tableNumber: selectedTable,
+      items,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      waiterName: 'You',
+      total,
+    };
+    setOrderList(prev => [...prev, newOrder]);
+    setShowNewOrder(false);
+    setNewOrderItems([]);
+  };
+
+  const markServed = (orderId: string) => {
+    setOrderList(prev => prev.map(o => o.id === orderId ? { ...o, status: 'served' as OrderStatus, updatedAt: new Date() } : o));
+  };
+
+  const cancelOrder = (orderId: string) => {
+    setOrderList(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' as OrderStatus, updatedAt: new Date() } : o));
+  };
 
   return (
-    <div className="flex h-[calc(100vh-3rem)]">
+    <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Main - Table Grid */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-mono text-lg font-bold tracking-wide">FLOOR MAP</h2>
-          <span className="font-mono text-xs text-muted-foreground">
-            {tables.filter(t => t.status === 'available').length} / {tables.length} AVAILABLE
-          </span>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Floor Map</h2>
+            <p className="text-sm text-muted-foreground mt-1">{tables.filter(t => t.status === 'available').length} of {tables.length} tables available</p>
+          </div>
         </div>
 
         {/* Ready Notifications */}
         {readyOrders.length > 0 && (
           <div className="mb-6 space-y-2">
             {readyOrders.map(order => (
-              <div
-                key={order.id}
-                className="flex items-center gap-3 px-4 py-3 border border-status-ready bg-status-ready/5 rounded-sm animate-bleed-ready"
-              >
+              <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-status-ready/10 border border-status-ready/30 rounded-xl animate-status-pulse">
                 <AlertCircle className="h-4 w-4 text-status-ready shrink-0" />
-                <span className="font-mono text-sm text-status-ready">
-                  {order.id} — TABLE {String(order.tableNumber).padStart(2, '0')} — READY FOR PICKUP
+                <span className="text-sm font-medium text-status-ready">
+                  {order.id} — Table {String(order.tableNumber).padStart(2, '0')} — Ready for pickup
                 </span>
               </div>
             ))}
@@ -58,108 +84,109 @@ export default function WaiterDashboard() {
             <button
               key={table.id}
               onClick={() => setSelectedTable(table.id)}
-              className={`border-2 p-4 text-left transition-all hover:bg-accent/50 ${
-                statusColor[table.status]
-              } ${selectedTable === table.id ? 'ring-1 ring-primary' : ''}`}
+              className={`rounded-xl border-2 p-5 text-left transition-all card-hover ${statusColors[table.status]} ${selectedTable === table.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
             >
               <div className="font-mono text-2xl font-bold mb-2">
                 T{String(table.id).padStart(2, '0')}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
                 <Users className="h-3 w-3" />
-                <span className="font-body">{table.seats} seats</span>
+                <span>{table.seats} seats</span>
               </div>
-              <div className={`font-mono text-[10px] font-semibold tracking-wider ${statusColor[table.status]}`}>
-                {statusLabel[table.status]}
-              </div>
-              {table.waiter && (
-                <div className="font-body text-[11px] text-muted-foreground mt-1">
-                  {table.waiter}
-                </div>
-              )}
+              <div className="text-xs font-medium capitalize mt-1">{table.status}</div>
+              {table.waiter && <div className="text-xs text-muted-foreground mt-1">{table.waiter}</div>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Right Panel - Order Details */}
+      {/* Right Panel */}
       {selectedTable && (
-        <div className="w-80 border-l border-border p-5 overflow-auto">
+        <div className="w-80 border-l border-border bg-card p-5 overflow-auto">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-mono text-sm font-bold">
-              TABLE {String(selectedTable).padStart(2, '0')}
-            </h3>
-            <button
-              onClick={() => setSelectedTable(null)}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground"
-            >
-              CLOSE
+            <h3 className="font-semibold text-foreground">Table {String(selectedTable).padStart(2, '0')}</h3>
+            <button onClick={() => setSelectedTable(null)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
 
           {selectedOrder ? (
             <div>
-              <div className="font-mono text-xs text-muted-foreground mb-1">{selectedOrder.id}</div>
-              <StatusBadge status={selectedOrder.status} />
-
-              <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-mono text-sm text-muted-foreground">{selectedOrder.id}</span>
+                <StatusBadge status={selectedOrder.status} />
+              </div>
+              <div className="space-y-3">
                 {selectedOrder.items.map((item, i) => (
                   <div key={i} className="flex justify-between border-b border-border pb-2">
                     <div>
-                      <div className="font-body text-sm">{item.menuItem.name}</div>
-                      <div className="font-mono text-xs text-muted-foreground">×{item.quantity}</div>
+                      <p className="text-sm font-medium">{item.menuItem.name}</p>
+                      <p className="text-xs text-muted-foreground">×{item.quantity}</p>
                     </div>
-                    <div className="font-mono text-sm">
-                      ${(item.menuItem.price * item.quantity).toFixed(2)}
-                    </div>
+                    <span className="font-mono text-sm">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
-
               <div className="flex justify-between mt-4 pt-3 border-t border-border">
-                <span className="font-mono text-sm font-bold">TOTAL</span>
-                <span className="font-mono text-sm font-bold">${selectedOrder.total.toFixed(2)}</span>
+                <span className="font-semibold">Total</span>
+                <span className="font-mono font-semibold">${selectedOrder.total.toFixed(2)}</span>
               </div>
-
-              <div className="mt-6 space-y-2">
+              <div className="mt-4 space-y-2">
                 {selectedOrder.status === 'pending' && (
-                  <button className="w-full py-2 border border-status-issue text-status-issue font-mono text-xs tracking-wider hover:bg-status-issue/10 transition-colors">
-                    CANCEL ORDER
+                  <button onClick={() => cancelOrder(selectedOrder.id)} className="w-full py-2.5 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors">
+                    Cancel Order
                   </button>
                 )}
                 {selectedOrder.status === 'ready' && (
-                  <button className="w-full py-2 bg-primary text-primary-foreground font-mono text-xs tracking-wider hover:bg-primary/90 transition-colors">
-                    MARK SERVED
+                  <button onClick={() => markServed(selectedOrder.id)} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors btn-press">
+                    Mark Served
                   </button>
                 )}
               </div>
             </div>
           ) : (
             <div className="text-center mt-12">
-              <p className="font-mono text-sm text-muted-foreground">NO ACTIVE ORDER</p>
-              <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs tracking-wider hover:bg-primary/90 transition-colors">
-                NEW ORDER
+              <p className="text-sm text-muted-foreground">No active order</p>
+              <button onClick={() => setShowNewOrder(true)} className="mt-4 flex items-center gap-2 mx-auto px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors btn-press">
+                <Plus className="h-4 w-4" /> New Order
               </button>
             </div>
           )}
         </div>
       )}
-    </div>
-  );
-}
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const map: Record<OrderStatus, { color: string; label: string }> = {
-    pending: { color: 'bg-status-pending/10 text-status-pending border-status-pending', label: 'PENDING' },
-    preparing: { color: 'bg-status-progress/10 text-status-progress border-status-progress', label: 'PREPARING' },
-    ready: { color: 'bg-status-ready/10 text-status-ready border-status-ready', label: 'READY' },
-    served: { color: 'bg-muted text-muted-foreground border-muted', label: 'SERVED' },
-    cancelled: { color: 'bg-status-issue/10 text-status-issue border-status-issue', label: 'CANCELLED' },
-  };
-  const { color, label } = map[status];
-  return (
-    <span className={`inline-block font-mono text-[10px] font-semibold tracking-wider px-2 py-0.5 border rounded-sm ${color}`}>
-      {label}
-    </span>
+      {showNewOrder && selectedTable && (
+        <CrudModal title={`New Order — Table ${selectedTable}`} onClose={() => { setShowNewOrder(false); setNewOrderItems([]); }} onSubmit={handleCreateOrder} submitLabel="Send to Kitchen">
+          <p className="text-sm text-muted-foreground mb-2">Select items:</p>
+          {menuItems.filter(m => m.available).map(item => {
+            const existing = newOrderItems.find(n => n.menuItemId === item.id);
+            return (
+              <div key={item.id} className="flex items-center justify-between py-2 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{item.image}</span>
+                  <div>
+                    <p className="text-sm font-medium">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setNewOrderItems(prev => {
+                    const ex = prev.find(n => n.menuItemId === item.id);
+                    if (ex && ex.quantity > 1) return prev.map(n => n.menuItemId === item.id ? { ...n, quantity: n.quantity - 1 } : n);
+                    return prev.filter(n => n.menuItemId !== item.id);
+                  })} className="h-7 w-7 rounded-lg border border-border text-sm hover:bg-muted transition-colors">-</button>
+                  <span className="font-mono text-sm w-6 text-center">{existing?.quantity || 0}</span>
+                  <button onClick={() => setNewOrderItems(prev => {
+                    const ex = prev.find(n => n.menuItemId === item.id);
+                    if (ex) return prev.map(n => n.menuItemId === item.id ? { ...n, quantity: n.quantity + 1 } : n);
+                    return [...prev, { menuItemId: item.id, quantity: 1 }];
+                  })} className="h-7 w-7 rounded-lg border border-border text-sm hover:bg-muted transition-colors">+</button>
+                </div>
+              </div>
+            );
+          })}
+        </CrudModal>
+      )}
+    </div>
   );
 }

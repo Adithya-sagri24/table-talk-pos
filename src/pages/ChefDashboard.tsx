@@ -2,11 +2,12 @@ import { orders } from '@/lib/mock-data';
 import { OrderStatus } from '@/lib/types';
 import { useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
+import { StatusBadge } from '@/components/StatusBadge';
 
 const columns: { status: OrderStatus; label: string; color: string }[] = [
-  { status: 'pending', label: 'PENDING', color: 'border-t-status-pending' },
-  { status: 'preparing', label: 'PREPARING', color: 'border-t-status-progress' },
-  { status: 'ready', label: 'READY', color: 'border-t-status-ready' },
+  { status: 'pending', label: 'Pending', color: 'border-t-status-pending' },
+  { status: 'preparing', label: 'Preparing', color: 'border-t-status-preparing' },
+  { status: 'ready', label: 'Ready', color: 'border-t-status-ready' },
 ];
 
 function timeSince(date: Date): string {
@@ -16,11 +17,8 @@ function timeSince(date: Date): string {
 
 export default function ChefDashboard() {
   const [orderList, setOrderList] = useState(orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)));
-  const [animating, setAnimating] = useState<string | null>(null);
 
   const advanceStatus = (orderId: string) => {
-    setAnimating(orderId);
-    setTimeout(() => setAnimating(null), 1500);
     setOrderList(prev =>
       prev.map(o => {
         if (o.id !== orderId) return o;
@@ -31,70 +29,62 @@ export default function ChefDashboard() {
   };
 
   return (
-    <div className="p-6 h-[calc(100vh-3rem)] overflow-auto">
+    <div className="p-6 h-[calc(100vh-3.5rem)] overflow-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-mono text-lg font-bold tracking-wide">KITCHEN DISPLAY</h2>
-        <span className="font-mono text-xs text-muted-foreground">
-          {orderList.filter(o => o.status === 'pending').length} INCOMING
-        </span>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Kitchen Display</h2>
+          <p className="text-sm text-muted-foreground mt-1">{orderList.filter(o => o.status === 'pending').length} incoming orders</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 h-[calc(100%-3rem)]">
+      <div className="grid grid-cols-3 gap-6 h-[calc(100%-5rem)]">
         {columns.map(col => {
           const colOrders = orderList.filter(o => o.status === col.status);
           return (
             <div key={col.status} className="flex flex-col">
-              <div className={`border-t-2 ${col.color} pb-3 mb-3`}>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="font-mono text-xs font-bold tracking-wider">{col.label}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{colOrders.length}</span>
+              <div className={`border-t-4 ${col.color} rounded-t-xl bg-card p-3 mb-3 shadow-sm border border-border border-t-0`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">{col.label}</span>
+                  <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">{colOrders.length}</span>
                 </div>
               </div>
 
               <div className="space-y-3 flex-1 overflow-auto">
                 {colOrders.length === 0 ? (
-                  <div className="font-mono text-xs text-muted-foreground text-center py-8">
-                    NO {col.label} ORDERS
+                  <div className="text-sm text-muted-foreground text-center py-8">
+                    No {col.label.toLowerCase()} orders
                   </div>
                 ) : (
                   colOrders.map(order => (
-                    <div
-                      key={order.id}
-                      className={`border border-border p-4 transition-all ${
-                        animating === order.id
-                          ? order.status === 'preparing'
-                            ? 'animate-bleed-progress'
-                            : 'animate-bleed-ready'
-                          : ''
-                      }`}
-                    >
+                    <div key={order.id} className="bg-card rounded-xl p-4 shadow-sm border border-border card-hover">
                       <div className="flex items-center justify-between mb-3">
                         <span className="font-mono text-sm font-bold">{order.id}</span>
-                        <span className="font-mono text-lg font-bold">
-                          T{String(order.tableNumber).padStart(2, '0')}
-                        </span>
+                        <span className="font-mono text-lg font-bold text-primary">T{String(order.tableNumber).padStart(2, '0')}</span>
                       </div>
 
                       <div className="space-y-1.5 mb-3">
                         {order.items.map((item, i) => (
-                          <div key={i} className="flex justify-between">
-                            <span className="font-body text-sm">{item.menuItem.name}</span>
-                            <span className="font-mono text-sm text-muted-foreground">×{item.quantity}</span>
+                          <div key={i} className="flex justify-between text-sm">
+                            <span className="flex items-center gap-2">
+                              <span>{item.menuItem.image}</span>
+                              <span>{item.menuItem.name}</span>
+                            </span>
+                            <span className="font-mono text-muted-foreground">×{item.quantity}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                        <span className="font-body text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {timeSince(order.createdAt)}
                         </span>
                         {order.status !== 'ready' && (
                           <button
                             onClick={() => advanceStatus(order.id)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-[10px] tracking-wider hover:bg-primary/90 transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors btn-press"
                           >
-                            {order.status === 'pending' ? 'START' : 'READY'}
+                            {order.status === 'pending' ? 'Start' : 'Ready'}
                             <ArrowRight className="h-3 w-3" />
                           </button>
                         )}
