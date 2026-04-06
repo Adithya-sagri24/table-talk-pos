@@ -1,10 +1,13 @@
-import { orders } from '@/lib/mock-data';
 import { useState } from 'react';
 import { DollarSign, CreditCard, Smartphone, Globe, Percent, X, Check } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { toast } from 'sonner';
+import { useRMS } from '@/contexts/RMSContext';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function BillingDashboard() {
+  const { orders, updateOrderStatus, addAuditLog } = useRMS();
+  const { userName } = useRole();
   const servedOrders = orders.filter(o => o.status === 'served' || o.status === 'ready');
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [discount, setDiscount] = useState('');
@@ -14,7 +17,6 @@ export default function BillingDashboard() {
   const selected = servedOrders.find(o => o.id === selectedOrder);
   const taxRate = 0.08;
   const discountAmount = discount ? parseFloat(discount) || 0 : 0;
-
   const subtotal = selected ? selected.total : 0;
   const discountedTotal = Math.max(0, subtotal - discountAmount);
   const tax = discountedTotal * taxRate;
@@ -25,18 +27,25 @@ export default function BillingDashboard() {
       toast.error('Please select a payment method');
       return;
     }
+    if (selected) {
+      addAuditLog({
+        user: userName,
+        role: 'billing',
+        action: 'Generated receipt',
+        details: `${selected.id} — $${grandTotal.toFixed(2)} via ${paymentMethod.toUpperCase()}${promoCode ? ` (promo: ${promoCode})` : ''}`,
+        status: 'success',
+      });
+    }
     toast.success(`Receipt generated! Payment: ${paymentMethod.toUpperCase()} — $${grandTotal.toFixed(2)}`);
   };
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* Order List */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-foreground">Billing</h2>
           <p className="text-sm text-muted-foreground mt-1">Select an order to generate a bill</p>
         </div>
-
         <div className="space-y-2">
           {servedOrders.length === 0 ? (
             <div className="text-sm text-muted-foreground py-8 text-center">No completed orders</div>
@@ -46,9 +55,7 @@ export default function BillingDashboard() {
                 key={order.id}
                 onClick={() => setSelectedOrder(order.id)}
                 className={`w-full flex items-center justify-between p-4 rounded-xl text-left transition-all shadow-sm ${
-                  selectedOrder === order.id
-                    ? 'border-2 border-primary bg-primary/5'
-                    : 'border border-border bg-card hover:shadow-md'
+                  selectedOrder === order.id ? 'border-2 border-primary bg-primary/5' : 'border border-border bg-card hover:shadow-md'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -70,7 +77,6 @@ export default function BillingDashboard() {
         </div>
       </div>
 
-      {/* Bill Details */}
       {selected && (
         <div className="w-96 border-l border-border bg-card p-6 overflow-auto">
           <div className="flex items-center justify-between mb-4">
@@ -79,12 +85,9 @@ export default function BillingDashboard() {
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
-
           <div className="text-sm text-muted-foreground mb-4">
             {selected.id} • Table {String(selected.tableNumber).padStart(2, '0')} • {selected.waiterName}
           </div>
-
-          {/* Items */}
           <div className="space-y-2 mb-4">
             {selected.items.map((item, i) => (
               <div key={i} className="flex justify-between pb-2 border-b border-border">
@@ -96,22 +99,16 @@ export default function BillingDashboard() {
               </div>
             ))}
           </div>
-
-          {/* Promo */}
           <div className="mb-3">
             <label className="text-sm font-medium block mb-1.5">Promo Code</label>
             <input type="text" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} placeholder="Enter code"
               className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors" />
           </div>
-
-          {/* Discount */}
           <div className="mb-4">
             <label className="text-sm font-medium block mb-1.5">Discount ($)</label>
             <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="0.00"
               className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors" />
           </div>
-
-          {/* Totals */}
           <div className="space-y-2 py-3 border-t border-border">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
@@ -132,8 +129,6 @@ export default function BillingDashboard() {
               <span className="font-mono">${grandTotal.toFixed(2)}</span>
             </div>
           </div>
-
-          {/* Payment Methods */}
           <div className="mt-4">
             <p className="text-sm font-medium mb-2">Payment Method</p>
             <div className="grid grid-cols-2 gap-2">
@@ -147,21 +142,16 @@ export default function BillingDashboard() {
                   key={label}
                   onClick={() => setPaymentMethod(label.toLowerCase())}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                    paymentMethod === label.toLowerCase()
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                    paymentMethod === label.toLowerCase() ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {label}
+                  <Icon className="h-4 w-4" />{label}
                 </button>
               ))}
             </div>
           </div>
-
           <button onClick={handleGenerateReceipt} className="w-full mt-4 py-3 bg-status-ready text-primary-foreground rounded-lg text-sm font-semibold hover:bg-status-ready/90 transition-colors btn-press flex items-center justify-center gap-2">
-            <Check className="h-4 w-4" />
-            Generate Receipt
+            <Check className="h-4 w-4" /> Generate Receipt
           </button>
         </div>
       )}

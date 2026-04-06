@@ -1,9 +1,11 @@
 import { staff } from '@/lib/mock-data';
 import { StaffMember } from '@/lib/types';
 import { useLocation } from 'react-router-dom';
-import { Shield, Clock, Settings, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Shield, Clock, Settings, Plus, Pencil, Trash2, Search, Filter, CheckCircle, XCircle, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { CrudModal, FormField, inputClass, selectClass } from '@/components/CrudModal';
+import { useRMS, AuditLogEntry } from '@/contexts/RMSContext';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function AdminDashboard() {
   const location = useLocation();
@@ -19,19 +21,27 @@ function AdminUsers() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
+  const { addAuditLog } = useRMS();
+  const { userName } = useRole();
 
   const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
   const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
   const handleSave = () => {
     if (editing) {
       setUsers(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
+      addAuditLog({ user: userName, role: 'admin', action: 'Updated user', details: `${form.name} (${form.role})`, status: 'success' });
       setEditing(null);
     } else {
       setUsers(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
+      addAuditLog({ user: userName, role: 'admin', action: 'Created user', details: `${form.name} (${form.role})`, status: 'success' });
       setAdding(false);
     }
   };
-  const handleDelete = (id: string) => setUsers(prev => prev.filter(s => s.id !== id));
+  const handleDelete = (id: string) => {
+    const s = users.find(x => x.id === id);
+    setUsers(prev => prev.filter(x => x.id !== id));
+    addAuditLog({ user: userName, role: 'admin', action: 'Deleted user', details: s?.name || id, status: 'info' });
+  };
 
   return (
     <div className="p-6 overflow-auto space-y-6">
@@ -101,11 +111,15 @@ function AdminConfig() {
   ]);
   const [editing, setEditing] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
+  const { addAuditLog } = useRMS();
+  const { userName } = useRole();
 
   const startEdit = (i: number) => { setEditing(i); setEditValue(configs[i].value); };
   const saveEdit = () => {
     if (editing !== null) {
+      const oldValue = configs[editing].value;
       setConfigs(prev => prev.map((c, i) => i === editing ? { ...c, value: editValue } : c));
+      addAuditLog({ user: userName, role: 'admin', action: 'Changed config', details: `${configs[editing].key}: ${oldValue} → ${editValue}`, status: 'info' });
       setEditing(null);
     }
   };
@@ -144,32 +158,110 @@ function AdminConfig() {
 }
 
 function AdminLogs() {
-  const logs = [
-    { timestamp: '14:32:05', user: 'Morgan Swift', action: 'Updated menu item: Grilled Salmon price → $22.99', level: 'info' },
-    { timestamp: '14:28:12', user: 'Admin Root', action: 'Created promo code: WELCOME10', level: 'info' },
-    { timestamp: '14:15:44', user: 'Alex Rivera', action: 'Cancelled order ORD-105', level: 'warning' },
-    { timestamp: '13:58:00', user: 'Chef Marco', action: 'Marked ORD-102 as READY', level: 'info' },
-    { timestamp: '13:45:22', user: 'Admin Root', action: 'Changed TAX_RATE from 7% to 8%', level: 'warning' },
-    { timestamp: '13:30:00', user: 'System', action: 'Daily backup completed', level: 'info' },
-  ];
+  const { auditLogs } = useRMS();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  const filteredLogs = auditLogs
+    .filter(log => statusFilter === 'all' || log.status === statusFilter)
+    .filter(log => roleFilter === 'all' || log.role === roleFilter)
+    .filter(log =>
+      search === '' ||
+      log.user.toLowerCase().includes(search.toLowerCase()) ||
+      log.action.toLowerCase().includes(search.toLowerCase()) ||
+      log.details.toLowerCase().includes(search.toLowerCase())
+    );
+
+  const statusIcon = (status: AuditLogEntry['status']) => {
+    switch (status) {
+      case 'success': return <CheckCircle className="h-4 w-4 text-status-ready" />;
+      case 'failure': return <XCircle className="h-4 w-4 text-status-issue" />;
+      case 'info': return <Info className="h-4 w-4 text-status-served" />;
+    }
+  };
+
+  const statusBadgeClass = (status: AuditLogEntry['status']) => {
+    switch (status) {
+      case 'success': return 'bg-status-ready/15 text-status-ready';
+      case 'failure': return 'bg-status-issue/15 text-status-issue';
+      case 'info': return 'bg-status-served/15 text-status-served';
+    }
+  };
+
+  const allRoles = Array.from(new Set(auditLogs.map(l => l.role)));
 
   return (
     <div className="p-6 overflow-auto space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground">Audit Logs</h2>
-        <p className="text-sm text-muted-foreground mt-1">System activity and change history</p>
+        <p className="text-sm text-muted-foreground mt-1">Complete system activity and change history</p>
       </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border text-center">
+          <p className="font-mono text-2xl font-bold text-foreground">{auditLogs.length}</p>
+          <p className="text-xs text-muted-foreground">Total Events</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border text-center">
+          <p className="font-mono text-2xl font-bold text-status-ready">{auditLogs.filter(l => l.status === 'success').length}</p>
+          <p className="text-xs text-muted-foreground">Successful</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border text-center">
+          <p className="font-mono text-2xl font-bold text-status-issue">{auditLogs.filter(l => l.status === 'failure').length}</p>
+          <p className="text-xs text-muted-foreground">Failed</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border text-center">
+          <p className="font-mono text-2xl font-bold text-status-served">{auditLogs.filter(l => l.status === 'info').length}</p>
+          <p className="text-xs text-muted-foreground">Info</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search logs..."
+            className="pl-9 pr-4 py-2.5 rounded-lg border border-border bg-card text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors" />
+        </div>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="px-3 py-2.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="all">All Status</option>
+          <option value="success">Success</option>
+          <option value="failure">Failure</option>
+          <option value="info">Info</option>
+        </select>
+        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+          className="px-3 py-2.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="all">All Roles</option>
+          {allRoles.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {/* Log Entries */}
       <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-        {logs.map((log, i) => (
-          <div key={i} className="flex items-start gap-4 p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
-            <span className="font-mono text-xs text-muted-foreground shrink-0 mt-0.5">{log.timestamp}</span>
-            <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${log.level === 'warning' ? 'bg-status-pending' : 'bg-status-ready'}`} />
-            <div>
-              <span className="text-sm font-medium">{log.user}</span>
-              <span className="text-sm text-muted-foreground ml-2">{log.action}</span>
+        {filteredLogs.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">No matching log entries</div>
+        ) : (
+          filteredLogs.map((log) => (
+            <div key={log.id} className="flex items-start gap-4 p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+              <div className="mt-0.5 shrink-0">{statusIcon(log.status)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground">{log.user}</span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">{log.role}</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusBadgeClass(log.status)}`}>{log.status}</span>
+                </div>
+                <p className="text-sm text-foreground mt-0.5">{log.action}</p>
+                <p className="text-xs text-muted-foreground">{log.details}</p>
+              </div>
+              <span className="font-mono text-xs text-muted-foreground shrink-0 mt-0.5">
+                {log.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+              </span>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
