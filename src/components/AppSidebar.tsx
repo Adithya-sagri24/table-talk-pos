@@ -71,10 +71,14 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
     ],
   },
   customer: {
-    label: 'Guest',
+    label: 'Customer',
     icon: Users,
     routes: [
-      { path: '/customer', label: 'Menu', icon: UtensilsCrossed },
+      { path: '/customer/menu', label: 'Menu', icon: UtensilsCrossed },
+      { path: '/customer/cart', label: 'Cart', icon: ShoppingCart },
+      { path: '/customer/orders', label: 'Orders', icon: ClipboardList },
+      { path: '/customer/reservations', label: 'Reservations', icon: CalendarDays },
+      { path: '/customer/feedback', label: 'Feedback', icon: Star },
     ],
   },
 };
