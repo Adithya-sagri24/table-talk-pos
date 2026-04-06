@@ -1,8 +1,8 @@
-import { orders } from '@/lib/mock-data';
 import { OrderStatus } from '@/lib/types';
-import { useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
+import { useRMS } from '@/contexts/RMSContext';
+import { useRole } from '@/contexts/RoleContext';
 
 const columns: { status: OrderStatus; label: string; color: string }[] = [
   { status: 'pending', label: 'Pending', color: 'border-t-status-pending' },
@@ -16,16 +16,16 @@ function timeSince(date: Date): string {
 }
 
 export default function ChefDashboard() {
-  const [orderList, setOrderList] = useState(orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)));
+  const { orders, updateOrderStatus } = useRMS();
+  const { userName } = useRole();
+  const kitchenOrders = orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status));
 
-  const advanceStatus = (orderId: string) => {
-    setOrderList(prev =>
-      prev.map(o => {
-        if (o.id !== orderId) return o;
-        const next: Record<string, OrderStatus> = { pending: 'preparing', preparing: 'ready' };
-        return { ...o, status: next[o.status] || o.status, updatedAt: new Date(), statusChanged: true };
-      })
-    );
+  const advanceStatus = (orderId: string, currentStatus: OrderStatus) => {
+    const next: Record<string, OrderStatus> = { pending: 'preparing', preparing: 'ready' };
+    const nextStatus = next[currentStatus];
+    if (nextStatus) {
+      updateOrderStatus(orderId, nextStatus, userName, 'chef');
+    }
   };
 
   return (
@@ -33,13 +33,13 @@ export default function ChefDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Kitchen Display</h2>
-          <p className="text-sm text-muted-foreground mt-1">{orderList.filter(o => o.status === 'pending').length} incoming orders</p>
+          <p className="text-sm text-muted-foreground mt-1">{kitchenOrders.filter(o => o.status === 'pending').length} incoming orders</p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6 h-[calc(100%-5rem)]">
         {columns.map(col => {
-          const colOrders = orderList.filter(o => o.status === col.status);
+          const colOrders = kitchenOrders.filter(o => o.status === col.status);
           return (
             <div key={col.status} className="flex flex-col">
               <div className={`border-t-4 ${col.color} rounded-t-xl bg-card p-3 mb-3 shadow-sm border border-border border-t-0`}>
@@ -61,7 +61,11 @@ export default function ChefDashboard() {
                         <span className="font-mono text-sm font-bold">{order.id}</span>
                         <span className="font-mono text-lg font-bold text-primary">T{String(order.tableNumber).padStart(2, '0')}</span>
                       </div>
-
+                      {order.orderType && (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full mb-2 inline-block ${order.orderType === 'takeaway' ? 'bg-status-preparing/15 text-status-preparing' : 'bg-status-served/15 text-status-served'}`}>
+                          {order.orderType === 'takeaway' ? '📦 Takeaway' : '🍽️ Dine-in'}
+                        </span>
+                      )}
                       <div className="space-y-1.5 mb-3">
                         {order.items.map((item, i) => (
                           <div key={i} className="flex justify-between text-sm">
@@ -73,7 +77,6 @@ export default function ChefDashboard() {
                           </div>
                         ))}
                       </div>
-
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -81,7 +84,7 @@ export default function ChefDashboard() {
                         </span>
                         {order.status !== 'ready' && (
                           <button
-                            onClick={() => advanceStatus(order.id)}
+                            onClick={() => advanceStatus(order.id, order.status)}
                             className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors btn-press"
                           >
                             {order.status === 'pending' ? 'Start' : 'Ready'}
