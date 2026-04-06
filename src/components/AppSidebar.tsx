@@ -18,6 +18,10 @@ import {
   Grid3X3,
   Menu,
   X,
+  ShoppingCart,
+  CalendarDays,
+  Star,
+  History,
 } from 'lucide-react';
 
 const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
@@ -67,15 +71,19 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
     ],
   },
   customer: {
-    label: 'Guest',
+    label: 'Customer',
     icon: Users,
     routes: [
-      { path: '/customer', label: 'Menu', icon: UtensilsCrossed },
+      { path: '/customer/menu', label: 'Menu', icon: UtensilsCrossed },
+      { path: '/customer/cart', label: 'Cart', icon: ShoppingCart },
+      { path: '/customer/orders', label: 'Orders', icon: ClipboardList },
+      { path: '/customer/reservations', label: 'Reservations', icon: CalendarDays },
+      { path: '/customer/feedback', label: 'Feedback', icon: Star },
     ],
   },
 };
 
-const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin'];
+const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin', 'customer'];
 
 export function AppSidebar() {
   const { role, setRole } = useRole();
@@ -87,6 +95,12 @@ export function AppSidebar() {
 
   const handleRoleSwitch = (newRole: UserRole) => {
     if (newRole === role) return;
+    if (newRole === 'customer') {
+      // Customer has its own auth — just navigate
+      setRole(newRole);
+      navigate('/customer/menu');
+      return;
+    }
     setLoginTarget(newRole);
   };
 

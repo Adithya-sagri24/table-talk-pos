@@ -29,6 +29,7 @@ export interface Order {
   waiterName: string;
   total: number;
   statusChanged?: boolean;
+  orderType?: 'dine-in' | 'takeaway';
 }
 
 export interface Table {
