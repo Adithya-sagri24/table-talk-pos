@@ -6,7 +6,7 @@ import { Search, Plus, Minus, ShoppingCart } from 'lucide-react';
 const categories = ['All', ...Array.from(new Set(menuItems.map(m => m.category)))];
 
 export default function CustomerMenu() {
-  const { addToCart, cart, cartTotal } = useCustomer();
+  const { addToCart, updateCartQuantity, cart, cartTotal } = useCustomer();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
 
@@ -34,7 +34,6 @@ export default function CustomerMenu() {
         )}
       </div>
 
-      {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -51,7 +50,6 @@ export default function CustomerMenu() {
         </div>
       </div>
 
-      {/* Menu Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(item => {
           const qty = getCartQty(item.id);
@@ -69,7 +67,7 @@ export default function CustomerMenu() {
                 </button>
               ) : (
                 <div className="flex items-center justify-between bg-primary/10 rounded-lg px-3 py-2">
-                  <button onClick={() => { const { updateCartQuantity } = useCustomerInline(); updateCartQuantity(item.id, qty - 1); }} className="h-8 w-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors">
+                  <button onClick={() => updateCartQuantity(item.id, qty - 1)} className="h-8 w-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors">
                     <Minus className="h-3 w-3" />
                   </button>
                   <span className="font-mono font-semibold text-primary">{qty}</span>
@@ -84,10 +82,4 @@ export default function CustomerMenu() {
       </div>
     </div>
   );
-}
-
-// Helper to avoid hook rules violation - we'll fix this
-function useCustomerInline() {
-  // This is a workaround - we import at top level
-  return {} as any;
 }
