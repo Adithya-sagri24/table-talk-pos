@@ -83,7 +83,7 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
   },
 };
 
-const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin'];
+const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin', 'customer'];
 
 export function AppSidebar() {
   const { role, setRole } = useRole();
