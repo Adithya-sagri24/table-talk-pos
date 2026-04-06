@@ -18,6 +18,10 @@ import {
   Grid3X3,
   Menu,
   X,
+  ShoppingCart,
+  CalendarDays,
+  Star,
+  History,
 } from 'lucide-react';
 
 const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
