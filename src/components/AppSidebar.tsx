@@ -95,6 +95,12 @@ export function AppSidebar() {
 
   const handleRoleSwitch = (newRole: UserRole) => {
     if (newRole === role) return;
+    if (newRole === 'customer') {
+      // Customer has its own auth — just navigate
+      setRole(newRole);
+      navigate('/customer/menu');
+      return;
+    }
     setLoginTarget(newRole);
   };
 

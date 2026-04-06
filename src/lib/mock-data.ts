@@ -6,6 +6,7 @@ export const roleCredentials: RoleCredentials[] = [
   { username: 'chef', password: 'chef123', role: 'chef' },
   { username: 'waiter', password: 'waiter123', role: 'waiter' },
   { username: 'billing', password: 'billing123', role: 'billing' },
+  { username: 'customer', password: 'customer123', role: 'customer' },
 ];
 
 export const menuItems: MenuItem[] = [
