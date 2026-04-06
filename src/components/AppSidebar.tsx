@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Star,
   History,
+  MessageSquare,
 } from 'lucide-react';
 
 const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
