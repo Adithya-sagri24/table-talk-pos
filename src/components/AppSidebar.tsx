@@ -60,6 +60,8 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
       { path: '/manager/staff', label: 'Staff', icon: Users },
       { path: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
       { path: '/manager/promos', label: 'Promos', icon: Tag },
+      { path: '/manager/reservations', label: 'Reservations', icon: CalendarDays },
+      { path: '/manager/feedback', label: 'Feedback', icon: MessageSquare },
     ],
   },
   admin: {
