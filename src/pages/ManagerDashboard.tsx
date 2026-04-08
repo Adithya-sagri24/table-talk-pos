@@ -539,7 +539,7 @@ function ManagerStaff() {
               <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center"><span className="text-sm font-semibold text-primary">{s.name.charAt(0)}</span></div>
               <div>
                 <p className="text-sm font-medium">{s.name}</p>
-                <p className="text-xs text-muted-foreground">{s.email}</p>
+                <p className="text-xs font-mono text-muted-foreground">{s.employeeId} · {s.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
