@@ -81,7 +81,8 @@ export interface Promotion {
 }
 
 export interface RoleCredentials {
-  username: string;
-  password: string;
+  employeeId: string;
+  pin: string;
   role: UserRole;
+  name: string;
 }
