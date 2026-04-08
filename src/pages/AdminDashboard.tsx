@@ -1,7 +1,7 @@
 import { staff } from '@/lib/mock-data';
 import { StaffMember } from '@/lib/types';
 import { useLocation } from 'react-router-dom';
-import { Shield, Clock, Settings, Plus, Pencil, Trash2, Search, Filter, CheckCircle, XCircle, Info, AlertCircle } from 'lucide-react';
+import { Shield, Clock, Settings, Plus, Pencil, Trash2, Search, Filter, CheckCircle, XCircle, Info, AlertCircle, Hash } from 'lucide-react';
 import { useState } from 'react';
 import { CrudModal, FormField, inputClass, selectClass } from '@/components/CrudModal';
 import { useRMS, AuditLogEntry } from '@/contexts/RMSContext';
