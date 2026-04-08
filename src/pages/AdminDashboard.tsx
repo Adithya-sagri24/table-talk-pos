@@ -20,32 +20,20 @@ function AdminUsers() {
   const [users, setUsers] = useState(staff);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true, employeeId: '', pin: '' });
-  const { addAuditLog, registerStaff } = useRMS();
+  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
+  const { addAuditLog } = useRMS();
   const { userName } = useRole();
 
-  const generateEmployeeId = () => `EMP${String(users.length + 1).padStart(3, '0')}`;
-  const generatePin = () => String(Math.floor(1000 + Math.random() * 9000));
-
-  const openAdd = () => {
-    setForm({ name: '', email: '', role: 'waiter', active: true, employeeId: generateEmployeeId(), pin: generatePin() });
-    setAdding(true);
-  };
-  const openEdit = (s: StaffMember) => {
-    setForm({ name: s.name, email: s.email, role: s.role, active: s.active, employeeId: s.employeeId, pin: s.pin });
-    setEditing(s);
-  };
+  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
+  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
   const handleSave = () => {
-    if (!form.name.trim() || !form.employeeId.trim() || !/^\d{4}$/.test(form.pin)) return;
     if (editing) {
-      setUsers(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin } : s));
-      addAuditLog({ user: userName, role: 'admin', action: 'Updated user', details: `${form.name} (${form.employeeId})`, status: 'success' });
+      setUsers(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
+      addAuditLog({ user: userName, role: 'admin', action: 'Updated user', details: `${form.name} (${form.role})`, status: 'success' });
       setEditing(null);
     } else {
-      const newStaff: StaffMember = { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin };
-      setUsers(prev => [...prev, newStaff]);
-      registerStaff(form.employeeId, form.pin, form.role as any, form.name);
-      addAuditLog({ user: userName, role: 'admin', action: 'Created user', details: `${form.name} (${form.employeeId})`, status: 'success' });
+      setUsers(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
+      addAuditLog({ user: userName, role: 'admin', action: 'Created user', details: `${form.name} (${form.role})`, status: 'success' });
       setAdding(false);
     }
   };
@@ -60,10 +48,10 @@ function AdminUsers() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">User Management</h2>
-          <p className="text-sm text-muted-foreground mt-1">Create and manage staff accounts with PIN access</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage system users and permissions</p>
         </div>
         <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors btn-press">
-          <Plus className="h-4 w-4" /> Add Staff
+          <Plus className="h-4 w-4" /> Add User
         </button>
       </div>
       <div className="space-y-2">
@@ -75,11 +63,7 @@ function AdminUsers() {
               </div>
               <div>
                 <p className="text-sm font-medium">{s.name}</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground font-mono">{s.employeeId}</span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground">{s.email}</span>
-                </div>
+                <p className="text-xs text-muted-foreground">{s.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -94,14 +78,9 @@ function AdminUsers() {
         ))}
       </div>
       {(adding || editing) && (
-        <CrudModal title={editing ? 'Edit Staff' : 'Create Staff Account'} onClose={() => { setEditing(null); setAdding(false); }} onSubmit={handleSave}>
-          <FormField label="Full Name"><input className={inputClass} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter full name" /></FormField>
-          <FormField label="Email"><input className={inputClass} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="staff@rms.com" /></FormField>
-          <FormField label="Employee ID"><input className={`${inputClass} font-mono`} value={form.employeeId} onChange={e => setForm(p => ({ ...p, employeeId: e.target.value.toUpperCase() }))} placeholder="EMP001" /></FormField>
-          <FormField label="4-digit PIN">
-            <input className={`${inputClass} font-mono tracking-widest`} value={form.pin} onChange={e => { if (/^\d{0,4}$/.test(e.target.value)) setForm(p => ({ ...p, pin: e.target.value })); }} placeholder="••••" maxLength={4} />
-            {form.pin && form.pin.length !== 4 && <p className="text-xs text-destructive mt-1">PIN must be exactly 4 digits</p>}
-          </FormField>
+        <CrudModal title={editing ? 'Edit User' : 'Add User'} onClose={() => { setEditing(null); setAdding(false); }} onSubmit={handleSave}>
+          <FormField label="Name"><input className={inputClass} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></FormField>
+          <FormField label="Email"><input className={inputClass} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} /></FormField>
           <FormField label="Role">
             <select className={selectClass} value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
               <option value="waiter">Waiter</option>

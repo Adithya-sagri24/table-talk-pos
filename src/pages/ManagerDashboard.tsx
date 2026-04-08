@@ -497,23 +497,19 @@ function ManagerStaff() {
   const [staffList, setStaffList] = useState(staff);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true, employeeId: '', pin: '' });
+  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
   const { addAuditLog } = useRMS();
   const { userName } = useRole();
 
-  const generateEmployeeId = () => `EMP${String(staffList.length + 1).padStart(3, '0')}`;
-  const generatePin = () => String(Math.floor(1000 + Math.random() * 9000));
-
-  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true, employeeId: generateEmployeeId(), pin: generatePin() }); setAdding(true); };
-  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active, employeeId: s.employeeId, pin: s.pin }); setEditing(s); };
+  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
+  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
   const handleSave = () => {
-    if (!form.name.trim() || !form.employeeId.trim() || !/^\d{4}$/.test(form.pin)) return;
     if (editing) {
-      setStaffList(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin } : s));
+      setStaffList(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
       addAuditLog({ user: userName, role: 'manager', action: 'Updated staff member', details: form.name, status: 'success' });
       setEditing(null);
     } else {
-      setStaffList(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin }]);
+      setStaffList(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
       addAuditLog({ user: userName, role: 'manager', action: 'Added staff member', details: form.name, status: 'success' });
       setAdding(false);
     }
@@ -539,11 +535,7 @@ function ManagerStaff() {
               <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center"><span className="text-sm font-semibold text-primary">{s.name.charAt(0)}</span></div>
               <div>
                 <p className="text-sm font-medium">{s.name}</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground font-mono">{s.employeeId}</span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground">{s.email}</span>
-                </div>
+                <p className="text-xs text-muted-foreground">{s.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -559,10 +551,6 @@ function ManagerStaff() {
         <CrudModal title={editing ? 'Edit Staff' : 'Add Staff'} onClose={() => { setEditing(null); setAdding(false); }} onSubmit={handleSave}>
           <FormField label="Name"><input className={inputClass} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></FormField>
           <FormField label="Email"><input className={inputClass} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} /></FormField>
-          <FormField label="Employee ID"><input className={`${inputClass} font-mono`} value={form.employeeId} onChange={e => setForm(p => ({ ...p, employeeId: e.target.value.toUpperCase() }))} /></FormField>
-          <FormField label="4-digit PIN">
-            <input className={`${inputClass} font-mono tracking-widest`} value={form.pin} onChange={e => { if (/^\d{0,4}$/.test(e.target.value)) setForm(p => ({ ...p, pin: e.target.value })); }} maxLength={4} />
-          </FormField>
           <FormField label="Role">
             <select className={selectClass} value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
               <option value="waiter">Waiter</option>
