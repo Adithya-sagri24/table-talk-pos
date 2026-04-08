@@ -42,8 +42,10 @@ export interface Table {
 
 export interface StaffMember {
   id: string;
+  employeeId: string;
   name: string;
   role: UserRole;
+  pin: string;
   email: string;
   active: boolean;
 }
