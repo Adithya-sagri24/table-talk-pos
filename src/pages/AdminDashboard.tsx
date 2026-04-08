@@ -1,5 +1,5 @@
 import { staff } from '@/lib/mock-data';
-import { StaffMember } from '@/lib/types';
+import { StaffMember, UserRole } from '@/lib/types';
 import { useLocation } from 'react-router-dom';
 import { Shield, Clock, Settings, Plus, Pencil, Trash2, Search, Filter, CheckCircle, XCircle, Info, AlertCircle, Hash } from 'lucide-react';
 import { useState } from 'react';
