@@ -87,14 +87,14 @@ export const orders: Order[] = [
 ];
 
 export const staff: StaffMember[] = [
-  { id: 's1', name: 'Alex Rivera', role: 'waiter', email: 'alex@rms.com', active: true },
-  { id: 's2', name: 'Sam Chen', role: 'waiter', email: 'sam@rms.com', active: true },
-  { id: 's3', name: 'Jordan Lee', role: 'waiter', email: 'jordan@rms.com', active: true },
-  { id: 's4', name: 'Chef Marco', role: 'chef', email: 'marco@rms.com', active: true },
-  { id: 's5', name: 'Chef Nina', role: 'chef', email: 'nina@rms.com', active: true },
-  { id: 's6', name: 'Pat Kumar', role: 'billing', email: 'pat@rms.com', active: true },
-  { id: 's7', name: 'Morgan Swift', role: 'manager', email: 'morgan@rms.com', active: true },
-  { id: 's8', name: 'Admin Root', role: 'admin', email: 'admin@rms.com', active: true },
+  { id: 's1', employeeId: 'EMP004', name: 'Alex Rivera', role: 'waiter', email: 'alex@rms.com', pin: '4567', active: true },
+  { id: 's2', employeeId: 'EMP006', name: 'Sam Chen', role: 'waiter', email: 'sam@rms.com', pin: '6789', active: true },
+  { id: 's3', employeeId: 'EMP007', name: 'Jordan Lee', role: 'waiter', email: 'jordan@rms.com', pin: '7890', active: true },
+  { id: 's4', employeeId: 'EMP003', name: 'Chef Marco', role: 'chef', email: 'marco@rms.com', pin: '3456', active: true },
+  { id: 's5', employeeId: 'EMP008', name: 'Chef Nina', role: 'chef', email: 'nina@rms.com', pin: '8901', active: true },
+  { id: 's6', employeeId: 'EMP005', name: 'Pat Kumar', role: 'billing', email: 'pat@rms.com', pin: '5678', active: true },
+  { id: 's7', employeeId: 'EMP002', name: 'Morgan Swift', role: 'manager', email: 'morgan@rms.com', pin: '2345', active: true },
+  { id: 's8', employeeId: 'EMP001', name: 'Admin Root', role: 'admin', email: 'admin@rms.com', pin: '1234', active: true },
 ];
 
 export const dailyMetrics: DailyMetrics = {
