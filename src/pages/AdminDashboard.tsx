@@ -84,8 +84,10 @@ function AdminUsers() {
       </div>
       {(adding || editing) && (
         <CrudModal title={editing ? 'Edit User' : 'Add User'} onClose={() => { setEditing(null); setAdding(false); }} onSubmit={handleSave}>
+          <FormField label="Employee ID"><input className={`${inputClass} font-mono`} value={form.employeeId} onChange={e => setForm(p => ({ ...p, employeeId: e.target.value.toUpperCase() }))} placeholder="EMP001" /></FormField>
           <FormField label="Name"><input className={inputClass} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></FormField>
           <FormField label="Email"><input className={inputClass} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} /></FormField>
+          <FormField label="4-Digit PIN"><input className={`${inputClass} font-mono tracking-widest`} value={form.pin} onChange={e => { if (/^\d{0,4}$/.test(e.target.value)) setForm(p => ({ ...p, pin: e.target.value })); }} maxLength={4} placeholder="••••" /></FormField>
           <FormField label="Role">
             <select className={selectClass} value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
               <option value="waiter">Waiter</option>

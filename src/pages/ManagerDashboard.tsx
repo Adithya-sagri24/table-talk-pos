@@ -497,19 +497,23 @@ function ManagerStaff() {
   const [staffList, setStaffList] = useState(staff);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
+  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true, employeeId: '', pin: '' });
   const { addAuditLog } = useRMS();
   const { userName } = useRole();
 
-  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
-  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
+  const generateEmployeeId = () => `EMP${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+  const generatePin = () => String(Math.floor(1000 + Math.random() * 9000));
+
+  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true, employeeId: generateEmployeeId(), pin: generatePin() }); setAdding(true); };
+  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active, employeeId: s.employeeId, pin: s.pin }); setEditing(s); };
   const handleSave = () => {
     if (editing) {
-      setStaffList(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
+      setStaffList(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin } : s));
       addAuditLog({ user: userName, role: 'manager', action: 'Updated staff member', details: form.name, status: 'success' });
       setEditing(null);
     } else {
-      setStaffList(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
+      const newStaff: StaffMember = { id: `s${Date.now()}`, employeeId: form.employeeId, name: form.name, email: form.email, role: form.role as any, pin: form.pin, active: form.active };
+      setStaffList(prev => [...prev, newStaff]);
       addAuditLog({ user: userName, role: 'manager', action: 'Added staff member', details: form.name, status: 'success' });
       setAdding(false);
     }
