@@ -1,12 +1,9 @@
-import { tables, menuItems } from '@/lib/mock-data';
+import { tables, orders, menuItems } from '@/lib/mock-data';
 import { OrderStatus, TableStatus, Order, OrderItem } from '@/lib/types';
 import { useState } from 'react';
-import { Users, AlertCircle, Plus, X, CalendarDays } from 'lucide-react';
+import { Users, AlertCircle, Plus, X } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CrudModal, FormField, inputClass, selectClass } from '@/components/CrudModal';
-import { useRMS } from '@/contexts/RMSContext';
-import { useRole } from '@/contexts/RoleContext';
-import { useLocation } from 'react-router-dom';
 
 const statusColors: Record<TableStatus, string> = {
   available: 'bg-status-ready/10 border-status-ready/40 text-status-ready',
@@ -16,24 +13,16 @@ const statusColors: Record<TableStatus, string> = {
 };
 
 export default function WaiterDashboard() {
-  const location = useLocation();
-  if (location.pathname === '/waiter/orders') return <WaiterOrders />;
-  return <WaiterFloor />;
-}
-
-function WaiterFloor() {
-  const { orders, addOrder, updateOrderStatus, cancelOrder: rmsCancel, reservations } = useRMS();
-  const { userName } = useRole();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [orderList, setOrderList] = useState(orders);
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [newOrderItems, setNewOrderItems] = useState<{ menuItemId: string; quantity: number }[]>([]);
 
-  const activeOrders = orders.filter(o => !['served', 'cancelled'].includes(o.status));
-  const selectedOrder = selectedTable ? activeOrders.find(o => o.tableNumber === selectedTable) : null;
-  const readyOrders = orders.filter(o => o.status === 'ready');
+  const selectedOrder = selectedTable
+    ? orderList.find(o => o.tableNumber === selectedTable && !['served', 'cancelled'].includes(o.status))
+    : null;
 
-  // Show reservations relevant to waiter
-  const upcomingReservations = reservations.filter(r => r.status === 'confirmed');
+  const readyOrders = orderList.filter(o => o.status === 'ready');
 
   const handleCreateOrder = () => {
     if (!selectedTable || newOrderItems.length === 0) return;
@@ -49,19 +38,25 @@ function WaiterFloor() {
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date(),
-      waiterName: userName,
+      waiterName: 'You',
       total,
     };
-    addOrder(newOrder);
+    setOrderList(prev => [...prev, newOrder]);
     setShowNewOrder(false);
     setNewOrderItems([]);
   };
 
-  const markServed = (orderId: string) => updateOrderStatus(orderId, 'served', userName, 'waiter');
-  const cancelOrderFn = (orderId: string) => rmsCancel(orderId, userName, 'waiter');
+  const markServed = (orderId: string) => {
+    setOrderList(prev => prev.map(o => o.id === orderId ? { ...o, status: 'served' as OrderStatus, updatedAt: new Date() } : o));
+  };
+
+  const cancelOrder = (orderId: string) => {
+    setOrderList(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' as OrderStatus, updatedAt: new Date() } : o));
+  };
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
+      {/* Main - Table Grid */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -70,6 +65,7 @@ function WaiterFloor() {
           </div>
         </div>
 
+        {/* Ready Notifications */}
         {readyOrders.length > 0 && (
           <div className="mb-6 space-y-2">
             {readyOrders.map(order => (
@@ -83,22 +79,6 @@ function WaiterFloor() {
           </div>
         )}
 
-        {/* Upcoming Reservations */}
-        {upcomingReservations.length > 0 && (
-          <div className="mb-6 bg-status-served/5 border border-status-served/20 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-status-served flex items-center gap-2 mb-2">
-              <CalendarDays className="h-4 w-4" /> Upcoming Reservations
-            </h3>
-            <div className="space-y-1">
-              {upcomingReservations.slice(0, 3).map(r => (
-                <div key={r.id} className="text-sm text-muted-foreground">
-                  {r.date} at {r.time} — {r.guests} guests {r.customerName ? `(${r.customerName})` : ''}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
           {tables.map((table) => (
             <button
@@ -106,9 +86,12 @@ function WaiterFloor() {
               onClick={() => setSelectedTable(table.id)}
               className={`rounded-xl border-2 p-5 text-left transition-all card-hover ${statusColors[table.status]} ${selectedTable === table.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
             >
-              <div className="font-mono text-2xl font-bold mb-2">T{String(table.id).padStart(2, '0')}</div>
+              <div className="font-mono text-2xl font-bold mb-2">
+                T{String(table.id).padStart(2, '0')}
+              </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                <Users className="h-3 w-3" /><span>{table.seats} seats</span>
+                <Users className="h-3 w-3" />
+                <span>{table.seats} seats</span>
               </div>
               <div className="text-xs font-medium capitalize mt-1">{table.status}</div>
               {table.waiter && <div className="text-xs text-muted-foreground mt-1">{table.waiter}</div>}
@@ -117,6 +100,7 @@ function WaiterFloor() {
         </div>
       </div>
 
+      {/* Right Panel */}
       {selectedTable && (
         <div className="w-80 border-l border-border bg-card p-5 overflow-auto">
           <div className="flex items-center justify-between mb-4">
@@ -149,7 +133,7 @@ function WaiterFloor() {
               </div>
               <div className="mt-4 space-y-2">
                 {selectedOrder.status === 'pending' && (
-                  <button onClick={() => cancelOrderFn(selectedOrder.id)} className="w-full py-2.5 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors">
+                  <button onClick={() => cancelOrder(selectedOrder.id)} className="w-full py-2.5 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors">
                     Cancel Order
                   </button>
                 )}
@@ -203,36 +187,6 @@ function WaiterFloor() {
           })}
         </CrudModal>
       )}
-    </div>
-  );
-}
-
-function WaiterOrders() {
-  const { orders } = useRMS();
-  const activeOrders = orders.filter(o => !['cancelled'].includes(o.status));
-
-  return (
-    <div className="p-6 overflow-auto space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">All Orders</h2>
-      <div className="space-y-2">
-        {activeOrders.map(order => (
-          <div key={order.id} className="flex items-center justify-between p-4 rounded-xl bg-card shadow-sm border border-border">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-lg">
-                {order.items[0]?.menuItem.image || '🍽️'}
-              </div>
-              <div>
-                <p className="text-sm font-bold font-mono">{order.id}</p>
-                <p className="text-xs text-muted-foreground">Table {order.tableNumber} • {order.waiterName}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatusBadge status={order.status} />
-              <span className="font-mono text-sm font-semibold">${order.total.toFixed(2)}</span>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

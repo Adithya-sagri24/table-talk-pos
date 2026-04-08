@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { dailyMetrics, revenueData, popularDishes, inventory, tables, menuItems, staff, promotions } from '@/lib/mock-data';
+import { dailyMetrics, orders, revenueData, popularDishes, inventory, tables, menuItems, staff, promotions } from '@/lib/mock-data';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { useLocation } from 'react-router-dom';
 import { MetricCard } from '@/components/MetricCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CrudModal, FormField, inputClass, selectClass } from '@/components/CrudModal';
 import { Order, MenuItem, InventoryItem, StaffMember, OrderStatus } from '@/lib/types';
-import { useRMS } from '@/contexts/RMSContext';
-import { useRole } from '@/contexts/RoleContext';
 import {
   Clock, ClipboardList, Grid3X3, TrendingUp, AlertTriangle, Package,
   Users, DollarSign, ShoppingBag, Plus, Pencil, Trash2, Search, Eye,
-  UtensilsCrossed, Tag, BarChart3, Star, CalendarDays, MessageSquare,
+  UtensilsCrossed, Tag, BarChart3,
 } from 'lucide-react';
 
 export default function ManagerDashboard() {
@@ -25,20 +23,14 @@ export default function ManagerDashboard() {
   if (path === '/manager/staff') return <ManagerStaff />;
   if (path === '/manager/analytics') return <ManagerAnalytics />;
   if (path === '/manager/promos') return <ManagerPromos />;
-  if (path === '/manager/feedback') return <ManagerFeedback />;
-  if (path === '/manager/reservations') return <ManagerReservations />;
 
   return <ManagerOverview />;
 }
 
 // ─── OVERVIEW ──────────────────────────────────────────────
 function ManagerOverview() {
-  const { orders, reservations, feedbacks } = useRMS();
   const m = dailyMetrics;
   const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
-  const inProgressCount = orders.filter(o => o.status === 'preparing').length;
 
   return (
     <div className="p-6 overflow-auto space-y-6">
@@ -49,14 +41,16 @@ function ManagerOverview() {
         </div>
       </div>
 
+      {/* Top Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Pending Orders" value={pendingCount} icon={Clock} trend="+12% from yesterday" trendUp iconBg="bg-status-pending/10" iconColor="text-status-pending" />
-        <MetricCard label="In Progress" value={inProgressCount} icon={ClipboardList} trend="+5% from yesterday" trendUp iconBg="bg-status-preparing/10" iconColor="text-status-preparing" />
+        <MetricCard label="Pending Orders" value={m.pendingOrders} icon={Clock} trend="+12% from yesterday" trendUp iconBg="bg-status-pending/10" iconColor="text-status-pending" />
+        <MetricCard label="In Progress" value={m.inProgressOrders} icon={ClipboardList} trend="+5% from yesterday" trendUp iconBg="bg-status-preparing/10" iconColor="text-status-preparing" />
         <MetricCard label="Available Tables" value={`${m.availableTables}/${m.totalTables}`} icon={Grid3X3} iconBg="bg-status-served/10" iconColor="text-status-served" />
         <MetricCard label="Total Revenue" value={`$${m.totalRevenue.toLocaleString()}`} icon={DollarSign} trend="+18% from last week" trendUp iconBg="bg-status-ready/10" iconColor="text-status-ready" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-semibold text-foreground">Total Revenue</h3>
@@ -67,7 +61,11 @@ function ManagerOverview() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 90%)" vertical={false} />
               <XAxis dataKey="day" tick={{ fill: 'hsl(220 10% 50%)', fontSize: 12, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'hsl(220 10% 50%)', fontSize: 12, fontFamily: 'Roboto Mono' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'white', border: '1px solid hsl(220 13% 90%)', borderRadius: '8px', fontFamily: 'Inter', fontSize: 13 }} labelStyle={{ color: 'hsl(220 20% 15%)', fontWeight: 600 }} formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']} />
+              <Tooltip
+                contentStyle={{ background: 'white', border: '1px solid hsl(220 13% 90%)', borderRadius: '8px', fontFamily: 'Inter', fontSize: 13 }}
+                labelStyle={{ color: 'hsl(220 20% 15%)', fontWeight: 600 }}
+                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+              />
               <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
                 {revenueData.map((entry) => (
                   <Cell key={entry.day} fill={entry.day === currentDay ? 'hsl(14 100% 62%)' : 'hsl(220 14% 88%)'} />
@@ -77,10 +75,13 @@ function ManagerOverview() {
           </ResponsiveContainer>
         </div>
 
+        {/* Business Panel */}
         <div className="space-y-4">
           <div className="bg-card rounded-xl p-5 shadow-sm border border-border card-hover">
             <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-status-served/10 flex items-center justify-center"><Users className="h-5 w-5 text-status-served" /></div>
+              <div className="h-10 w-10 rounded-xl bg-status-served/10 flex items-center justify-center">
+                <Users className="h-5 w-5 text-status-served" />
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">Customers</p>
                 <p className="font-mono text-xl font-bold text-foreground">{m.totalCustomers}</p>
@@ -89,19 +90,23 @@ function ManagerOverview() {
           </div>
           <div className="bg-card rounded-xl p-5 shadow-sm border border-border card-hover">
             <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center"><ShoppingBag className="h-5 w-5 text-primary" /></div>
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ShoppingBag className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Orders</p>
-                <p className="font-mono text-xl font-bold text-foreground">{orders.length}</p>
+                <p className="font-mono text-xl font-bold text-foreground">{m.ordersCompleted}</p>
               </div>
             </div>
           </div>
           <div className="bg-card rounded-xl p-5 shadow-sm border border-border card-hover">
             <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-status-ready/10 flex items-center justify-center"><TrendingUp className="h-5 w-5 text-status-ready" /></div>
+              <div className="h-10 w-10 rounded-xl bg-status-ready/10 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-status-ready" />
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                <p className="font-mono text-xl font-bold text-foreground">${orders.length ? (orders.reduce((s, o) => s + o.total, 0) / orders.length).toFixed(2) : '0.00'}</p>
+                <p className="font-mono text-xl font-bold text-foreground">${m.avgOrderValue.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -109,16 +114,23 @@ function ManagerOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
           <div className="space-y-3">
             {orders.slice(0, 5).map(order => (
               <div key={order.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-lg">{order.items[0]?.menuItem.image || '🍽️'}</div>
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-lg">
+                    {order.items[0]?.menuItem.image || '🍽️'}
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">{order.id} — Table {order.tableNumber}</p>
-                    <p className="text-xs text-muted-foreground">{order.waiterName} • {Math.floor((Date.now() - order.createdAt.getTime()) / 60000)}m ago</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {order.id} — Table {order.tableNumber}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {order.waiterName} • {Math.floor((Date.now() - order.createdAt.getTime()) / 60000)}m ago
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -130,6 +142,7 @@ function ManagerOverview() {
           </div>
         </div>
 
+        {/* Top Dishes */}
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">Top Dishes</h3>
           <div className="space-y-3">
@@ -137,7 +150,9 @@ function ManagerOverview() {
               const maxOrders = popularDishes[0].orders;
               return (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-lg">{dish.image}</div>
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-lg">
+                    {dish.image}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-foreground">{dish.name}</span>
@@ -154,46 +169,13 @@ function ManagerOverview() {
         </div>
       </div>
 
-      {/* Customer Feedback Summary */}
-      {feedbacks.length > 0 && (
-        <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"><Star className="h-5 w-5 text-status-pending" /> Recent Customer Feedback</h3>
-          <div className="space-y-3">
-            {feedbacks.slice(-3).reverse().map(fb => (
-              <div key={fb.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                <div>
-                  <p className="text-sm font-medium">{fb.customerName || 'Customer'} — Order {fb.orderId}</p>
-                  <p className="text-xs text-muted-foreground">{fb.comment}</p>
-                </div>
-                <div className="flex items-center gap-1 text-status-pending">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-3.5 w-3.5 ${i < fb.rating ? 'fill-status-pending' : 'fill-muted text-muted'}`} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Reservations Overview */}
-      {reservations.filter(r => r.status === 'confirmed').length > 0 && (
-        <div className="bg-status-served/5 border border-status-served/20 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-status-served flex items-center gap-2 mb-3"><CalendarDays className="h-4 w-4" /> Upcoming Reservations</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {reservations.filter(r => r.status === 'confirmed').slice(0, 4).map(r => (
-              <div key={r.id} className="bg-card rounded-lg p-3 border border-border">
-                <p className="text-sm font-medium">{r.date} at {r.time}</p>
-                <p className="text-xs text-muted-foreground">{r.guests} guests {r.customerName ? `• ${r.customerName}` : ''}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
+      {/* Low Stock Alert */}
       {inventory.filter(i => i.isLow).length > 0 && (
         <div className="bg-status-pending/5 border border-status-pending/30 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-status-pending flex items-center gap-2 mb-3"><AlertTriangle className="h-4 w-4" /> Low Stock Alerts</h3>
+          <h3 className="text-sm font-semibold text-status-pending flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4" />
+            Low Stock Alerts
+          </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {inventory.filter(i => i.isLow).map(item => (
               <div key={item.id} className="bg-card rounded-lg p-3 border border-border">
@@ -210,22 +192,22 @@ function ManagerOverview() {
 
 // ─── ORDERS ────────────────────────────────────────────────
 function ManagerOrders() {
-  const { orders } = useRMS();
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [orderList, setOrderList] = useState(orders);
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
 
-  const filtered = orders
+  const filtered = orderList
     .filter(o => filter === 'all' || o.status === filter)
     .filter(o => o.id.toLowerCase().includes(search.toLowerCase()) || o.waiterName.toLowerCase().includes(search.toLowerCase()));
 
   const statusCounts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
-    ready: orders.filter(o => o.status === 'ready').length,
-    served: orders.filter(o => o.status === 'served').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
+    all: orderList.length,
+    pending: orderList.filter(o => o.status === 'pending').length,
+    preparing: orderList.filter(o => o.status === 'preparing').length,
+    ready: orderList.filter(o => o.status === 'ready').length,
+    served: orderList.filter(o => o.status === 'served').length,
+    cancelled: orderList.filter(o => o.status === 'cancelled').length,
   };
 
   return (
@@ -233,6 +215,8 @@ function ManagerOrders() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Orders</h2>
       </div>
+
+      {/* Summary Cards */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         {Object.entries(statusCounts).map(([key, count]) => (
           <div key={key} className={`bg-card rounded-xl p-4 shadow-sm border border-border text-center cursor-pointer transition-all ${filter === key ? 'ring-2 ring-primary' : ''}`} onClick={() => setFilter(key)}>
@@ -241,11 +225,20 @@ function ManagerOrders() {
           </div>
         ))}
       </div>
+
+      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search orders..."
-          className="pl-9 pr-4 py-2.5 rounded-lg border border-border bg-card text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search orders..."
+          className="pl-9 pr-4 py-2.5 rounded-lg border border-border bg-card text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+        />
       </div>
+
+      {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
         {['all', 'pending', 'preparing', 'ready', 'served', 'cancelled'].map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${f === filter ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground hover:text-foreground'}`}>
@@ -253,6 +246,8 @@ function ManagerOrders() {
           </button>
         ))}
       </div>
+
+      {/* Order Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(order => (
           <div key={order.id} className="bg-card rounded-xl p-5 shadow-sm border border-border card-hover">
@@ -263,7 +258,6 @@ function ManagerOrders() {
             <div className="space-y-1 mb-3">
               <p className="text-sm text-muted-foreground">Table {order.tableNumber} • {order.waiterName}</p>
               <p className="text-xs text-muted-foreground">{Math.floor((Date.now() - order.createdAt.getTime()) / 60000)}m ago</p>
-              {order.orderType && <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${order.orderType === 'takeaway' ? 'bg-status-preparing/15 text-status-preparing' : 'bg-status-served/15 text-status-served'}`}>{order.orderType}</span>}
             </div>
             <div className="flex items-center justify-between pt-3 border-t border-border">
               <span className="font-mono text-lg font-bold text-foreground">${order.total.toFixed(2)}</span>
@@ -274,13 +268,13 @@ function ManagerOrders() {
           </div>
         ))}
       </div>
+
       {viewOrder && (
         <CrudModal title={`Order ${viewOrder.id}`} onClose={() => setViewOrder(null)}>
           <div className="space-y-3">
             <p className="text-sm"><span className="font-medium">Table:</span> {viewOrder.tableNumber}</p>
             <p className="text-sm"><span className="font-medium">Waiter:</span> {viewOrder.waiterName}</p>
             <p className="text-sm"><span className="font-medium">Status:</span> <StatusBadge status={viewOrder.status} /></p>
-            {viewOrder.orderType && <p className="text-sm"><span className="font-medium">Type:</span> {viewOrder.orderType}</p>}
             <div className="border-t border-border pt-3">
               <p className="text-sm font-medium mb-2">Items:</p>
               {viewOrder.items.map((item, i) => (
@@ -307,27 +301,19 @@ function ManagerMenu() {
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: '', category: '', price: '', available: true });
-  const { addAuditLog } = useRMS();
-  const { userName } = useRole();
 
   const openAdd = () => { setForm({ name: '', category: '', price: '', available: true }); setAdding(true); };
   const openEdit = (item: MenuItem) => { setForm({ name: item.name, category: item.category, price: String(item.price), available: item.available }); setEditing(item); };
   const handleSave = () => {
     if (editing) {
       setItems(prev => prev.map(i => i.id === editing.id ? { ...i, name: form.name, category: form.category, price: parseFloat(form.price) || 0, available: form.available } : i));
-      addAuditLog({ user: userName, role: 'manager', action: 'Updated menu item', details: form.name, status: 'success' });
       setEditing(null);
     } else {
       setItems(prev => [...prev, { id: `m${Date.now()}`, name: form.name, category: form.category, price: parseFloat(form.price) || 0, available: form.available }]);
-      addAuditLog({ user: userName, role: 'manager', action: 'Added menu item', details: form.name, status: 'success' });
       setAdding(false);
     }
   };
-  const handleDelete = (id: string) => {
-    const item = items.find(i => i.id === id);
-    setItems(prev => prev.filter(i => i.id !== id));
-    addAuditLog({ user: userName, role: 'manager', action: 'Deleted menu item', details: item?.name || id, status: 'info' });
-  };
+  const handleDelete = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
 
   const modal = adding || editing;
 
@@ -383,8 +369,7 @@ function ManagerMenu() {
 
 // ─── TABLES ────────────────────────────────────────────────
 function ManagerTables() {
-  const { reservations } = useRMS();
-  const [tableList] = useState(tables);
+  const [tableList, setTableList] = useState(tables);
   const statusColors: Record<string, string> = {
     available: 'bg-status-ready/10 border-status-ready/30 text-status-ready',
     occupied: 'bg-status-served/10 border-status-served/30 text-status-served',
@@ -405,24 +390,6 @@ function ManagerTables() {
           </div>
         ))}
       </div>
-      {reservations.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-3">Reservations</h3>
-          <div className="space-y-2">
-            {reservations.map(r => (
-              <div key={r.id} className="flex items-center justify-between p-4 rounded-xl bg-card shadow-sm border border-border">
-                <div>
-                  <p className="text-sm font-medium">{r.date} at {r.time}</p>
-                  <p className="text-xs text-muted-foreground">{r.guests} guests {r.customerName ? `• ${r.customerName}` : ''}</p>
-                </div>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${r.status === 'confirmed' ? 'bg-status-ready/15 text-status-ready' : r.status === 'cancelled' ? 'bg-status-issue/15 text-status-issue' : 'bg-status-pending/15 text-status-pending'}`}>
-                  {r.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -433,8 +400,6 @@ function ManagerInventory() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [form, setForm] = useState({ name: '', quantity: '', unit: '', lowThreshold: '' });
-  const { addAuditLog } = useRMS();
-  const { userName } = useRole();
 
   const openAdd = () => { setForm({ name: '', quantity: '', unit: '', lowThreshold: '' }); setAdding(true); };
   const openEdit = (item: InventoryItem) => { setForm({ name: item.name, quantity: String(item.quantity), unit: item.unit, lowThreshold: String(item.lowThreshold) }); setEditing(item); };
@@ -443,19 +408,13 @@ function ManagerInventory() {
     const threshold = parseInt(form.lowThreshold) || 0;
     if (editing) {
       setItems(prev => prev.map(i => i.id === editing.id ? { ...i, name: form.name, quantity: qty, unit: form.unit, lowThreshold: threshold, isLow: qty < threshold } : i));
-      addAuditLog({ user: userName, role: 'manager', action: 'Updated inventory', details: form.name, status: 'success' });
       setEditing(null);
     } else {
       setItems(prev => [...prev, { id: `inv${Date.now()}`, name: form.name, quantity: qty, unit: form.unit, lowThreshold: threshold, isLow: qty < threshold }]);
-      addAuditLog({ user: userName, role: 'manager', action: 'Added inventory item', details: form.name, status: 'success' });
       setAdding(false);
     }
   };
-  const handleDelete = (id: string) => {
-    const item = items.find(i => i.id === id);
-    setItems(prev => prev.filter(i => i.id !== id));
-    addAuditLog({ user: userName, role: 'manager', action: 'Deleted inventory item', details: item?.name || id, status: 'info' });
-  };
+  const handleDelete = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
 
   return (
     <div className="p-6 overflow-auto space-y-6">
@@ -498,27 +457,19 @@ function ManagerStaff() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
-  const { addAuditLog } = useRMS();
-  const { userName } = useRole();
 
   const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
   const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
   const handleSave = () => {
     if (editing) {
       setStaffList(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
-      addAuditLog({ user: userName, role: 'manager', action: 'Updated staff member', details: form.name, status: 'success' });
       setEditing(null);
     } else {
       setStaffList(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
-      addAuditLog({ user: userName, role: 'manager', action: 'Added staff member', details: form.name, status: 'success' });
       setAdding(false);
     }
   };
-  const handleDelete = (id: string) => {
-    const s = staffList.find(x => x.id === id);
-    setStaffList(prev => prev.filter(x => x.id !== id));
-    addAuditLog({ user: userName, role: 'manager', action: 'Removed staff member', details: s?.name || id, status: 'info' });
-  };
+  const handleDelete = (id: string) => setStaffList(prev => prev.filter(s => s.id !== id));
 
   return (
     <div className="p-6 overflow-auto space-y-6">
@@ -532,7 +483,9 @@ function ManagerStaff() {
         {staffList.map(s => (
           <div key={s.id} className="flex items-center justify-between p-4 rounded-xl bg-card shadow-sm border border-border">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center"><span className="text-sm font-semibold text-primary">{s.name.charAt(0)}</span></div>
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-primary">{s.name.charAt(0)}</span>
+              </div>
               <div>
                 <p className="text-sm font-medium">{s.name}</p>
                 <p className="text-xs text-muted-foreground">{s.email}</p>
@@ -604,27 +557,19 @@ function ManagerPromos() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<typeof promotions[0] | null>(null);
   const [form, setForm] = useState({ code: '', discount: '', type: 'percentage', active: true });
-  const { addAuditLog } = useRMS();
-  const { userName } = useRole();
 
   const openAdd = () => { setForm({ code: '', discount: '', type: 'percentage', active: true }); setAdding(true); };
   const openEdit = (p: typeof promotions[0]) => { setForm({ code: p.code, discount: p.discount, type: p.type, active: p.active }); setEditing(p); };
   const handleSave = () => {
     if (editing) {
       setPromos(prev => prev.map(p => p.id === editing.id ? { ...p, code: form.code, discount: form.discount, type: form.type as any, active: form.active } : p));
-      addAuditLog({ user: userName, role: 'manager', action: 'Updated promotion', details: form.code, status: 'success' });
       setEditing(null);
     } else {
       setPromos(prev => [...prev, { id: `p${Date.now()}`, code: form.code, discount: form.discount, type: form.type as any, active: form.active, uses: 0 }]);
-      addAuditLog({ user: userName, role: 'manager', action: 'Created promotion', details: form.code, status: 'success' });
       setAdding(false);
     }
   };
-  const handleDelete = (id: string) => {
-    const p = promos.find(x => x.id === id);
-    setPromos(prev => prev.filter(x => x.id !== id));
-    addAuditLog({ user: userName, role: 'manager', action: 'Deleted promotion', details: p?.code || id, status: 'info' });
-  };
+  const handleDelete = (id: string) => setPromos(prev => prev.filter(p => p.id !== id));
 
   return (
     <div className="p-6 overflow-auto space-y-6">
@@ -671,72 +616,6 @@ function ManagerPromos() {
             </select>
           </FormField>
         </CrudModal>
-      )}
-    </div>
-  );
-}
-
-// ─── FEEDBACK (Manager view) ──────────────────────────────
-function ManagerFeedback() {
-  const { feedbacks } = useRMS();
-
-  return (
-    <div className="p-6 overflow-auto space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Customer Feedback</h2>
-      {feedbacks.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">No feedback submitted yet</div>
-      ) : (
-        <div className="space-y-3">
-          {[...feedbacks].reverse().map(fb => (
-            <div key={fb.id} className="bg-card rounded-xl p-5 shadow-sm border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className="text-sm font-semibold">{fb.customerName || 'Customer'}</p>
-                  <p className="text-xs text-muted-foreground">Order {fb.orderId} • {fb.createdAt.toLocaleString()}</p>
-                </div>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-4 w-4 ${i < fb.rating ? 'fill-status-pending text-status-pending' : 'fill-muted text-muted'}`} />
-                  ))}
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{fb.comment}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── RESERVATIONS (Manager view) ──────────────────────────
-function ManagerReservations() {
-  const { reservations } = useRMS();
-
-  return (
-    <div className="p-6 overflow-auto space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Reservations</h2>
-      {reservations.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">No reservations</div>
-      ) : (
-        <div className="space-y-2">
-          {reservations.map(r => (
-            <div key={r.id} className="flex items-center justify-between p-4 rounded-xl bg-card shadow-sm border border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-status-served/10 flex items-center justify-center">
-                  <CalendarDays className="h-5 w-5 text-status-served" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{r.date} at {r.time}</p>
-                  <p className="text-xs text-muted-foreground">{r.guests} guests {r.customerName ? `• ${r.customerName}` : ''}</p>
-                </div>
-              </div>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${r.status === 'confirmed' ? 'bg-status-ready/15 text-status-ready' : r.status === 'cancelled' ? 'bg-status-issue/15 text-status-issue' : 'bg-status-pending/15 text-status-pending'}`}>
-                {r.status}
-              </span>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );

@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RoleProvider } from "@/contexts/RoleContext";
-import { RMSProvider } from "@/contexts/RMSContext";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import { AppLayout } from "@/components/AppLayout";
 import WaiterDashboard from "./pages/WaiterDashboard";
@@ -24,25 +23,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <RoleProvider>
-          <RMSProvider>
-            <CustomerProvider>
-              <AppLayout>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/manager" replace />} />
-                  <Route path="/waiter" element={<WaiterDashboard />} />
-                  <Route path="/waiter/orders" element={<WaiterDashboard />} />
-                  <Route path="/chef" element={<ChefDashboard />} />
-                  <Route path="/billing" element={<BillingDashboard />} />
-                  <Route path="/manager" element={<ManagerDashboard />} />
-                  <Route path="/manager/*" element={<ManagerDashboard />} />
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/*" element={<AdminDashboard />} />
-                  <Route path="/customer/*" element={<CustomerDashboard />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AppLayout>
-            </CustomerProvider>
-          </RMSProvider>
+          <CustomerProvider>
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Navigate to="/manager" replace />} />
+                <Route path="/waiter" element={<WaiterDashboard />} />
+                <Route path="/waiter/orders" element={<WaiterDashboard />} />
+                <Route path="/chef" element={<ChefDashboard />} />
+                <Route path="/billing" element={<BillingDashboard />} />
+                <Route path="/manager" element={<ManagerDashboard />} />
+                <Route path="/manager/*" element={<ManagerDashboard />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/customer/*" element={<CustomerDashboard />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          </CustomerProvider>
         </RoleProvider>
       </BrowserRouter>
     </TooltipProvider>
