@@ -45,11 +45,11 @@ interface RMSContextType {
 const RMSContext = createContext<RMSContextType | undefined>(undefined);
 
 const initialCredentials = [
-  { username: 'admin', password: 'admin123', role: 'admin' as UserRole, name: 'Admin Root' },
-  { username: 'manager', password: 'manager123', role: 'manager' as UserRole, name: 'Morgan Swift' },
-  { username: 'chef', password: 'chef123', role: 'chef' as UserRole, name: 'Chef Marco' },
-  { username: 'waiter', password: 'waiter123', role: 'waiter' as UserRole, name: 'Alex Rivera' },
-  { username: 'billing', password: 'billing123', role: 'billing' as UserRole, name: 'Pat Kumar' },
+  { employeeId: 'EMP001', pin: '1234', role: 'admin' as UserRole, name: 'Admin Root' },
+  { employeeId: 'EMP002', pin: '2345', role: 'manager' as UserRole, name: 'Morgan Swift' },
+  { employeeId: 'EMP003', pin: '3456', role: 'chef' as UserRole, name: 'Chef Marco' },
+  { employeeId: 'EMP004', pin: '4567', role: 'waiter' as UserRole, name: 'Alex Rivera' },
+  { employeeId: 'EMP005', pin: '5678', role: 'billing' as UserRole, name: 'Pat Kumar' },
 ];
 
 const initialAuditLogs: AuditLogEntry[] = [
