@@ -20,20 +20,25 @@ function AdminUsers() {
   const [users, setUsers] = useState(staff);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true });
-  const { addAuditLog } = useRMS();
+  const [form, setForm] = useState({ name: '', email: '', role: 'waiter', active: true, employeeId: '', pin: '' });
+  const { addAuditLog, registerStaff } = useRMS();
   const { userName } = useRole();
 
-  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true }); setAdding(true); };
-  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active }); setEditing(s); };
+  const generateEmployeeId = () => `EMP${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+  const generatePin = () => String(Math.floor(1000 + Math.random() * 9000));
+
+  const openAdd = () => { setForm({ name: '', email: '', role: 'waiter', active: true, employeeId: generateEmployeeId(), pin: generatePin() }); setAdding(true); };
+  const openEdit = (s: StaffMember) => { setForm({ name: s.name, email: s.email, role: s.role, active: s.active, employeeId: s.employeeId, pin: s.pin }); setEditing(s); };
   const handleSave = () => {
     if (editing) {
-      setUsers(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active } : s));
-      addAuditLog({ user: userName, role: 'admin', action: 'Updated user', details: `${form.name} (${form.role})`, status: 'success' });
+      setUsers(prev => prev.map(s => s.id === editing.id ? { ...s, name: form.name, email: form.email, role: form.role as any, active: form.active, employeeId: form.employeeId, pin: form.pin } : s));
+      addAuditLog({ user: userName, role: 'admin', action: 'Updated user', details: `${form.name} (${form.role}) - ${form.employeeId}`, status: 'success' });
       setEditing(null);
     } else {
-      setUsers(prev => [...prev, { id: `s${Date.now()}`, name: form.name, email: form.email, role: form.role as any, active: form.active }]);
-      addAuditLog({ user: userName, role: 'admin', action: 'Created user', details: `${form.name} (${form.role})`, status: 'success' });
+      const newStaff: StaffMember = { id: `s${Date.now()}`, employeeId: form.employeeId, name: form.name, email: form.email, role: form.role as any, pin: form.pin, active: form.active };
+      setUsers(prev => [...prev, newStaff]);
+      registerStaff(form.employeeId, form.pin, form.role as UserRole, form.name);
+      addAuditLog({ user: userName, role: 'admin', action: 'Created user', details: `${form.name} (${form.role}) - ${form.employeeId}`, status: 'success' });
       setAdding(false);
     }
   };
