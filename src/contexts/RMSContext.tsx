@@ -34,9 +34,9 @@ interface RMSContextType {
   addAuditLog: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
 
   // Staff credentials registry (for signup)
-  staffCredentials: { employeeId: string; pin: string; role: UserRole; name: string }[];
-  registerStaff: (employeeId: string, pin: string, role: UserRole, name: string) => boolean;
-  authenticateStaff: (employeeId: string, pin: string, role: UserRole) => { success: boolean; name: string };
+  staffCredentials: { username: string; password: string; role: UserRole; name: string }[];
+  registerStaff: (username: string, password: string, role: UserRole, name: string) => boolean;
+  authenticateStaff: (username: string, password: string, role: UserRole) => { success: boolean; name: string };
 
   // Tables
   tableStatuses: typeof mockTables;
@@ -45,11 +45,11 @@ interface RMSContextType {
 const RMSContext = createContext<RMSContextType | undefined>(undefined);
 
 const initialCredentials = [
-  { employeeId: 'EMP001', pin: '1234', role: 'admin' as UserRole, name: 'Admin Root' },
-  { employeeId: 'EMP002', pin: '2345', role: 'manager' as UserRole, name: 'Morgan Swift' },
-  { employeeId: 'EMP003', pin: '3456', role: 'chef' as UserRole, name: 'Chef Marco' },
-  { employeeId: 'EMP004', pin: '4567', role: 'waiter' as UserRole, name: 'Alex Rivera' },
-  { employeeId: 'EMP005', pin: '5678', role: 'billing' as UserRole, name: 'Pat Kumar' },
+  { username: 'admin', password: 'admin123', role: 'admin' as UserRole, name: 'Admin Root' },
+  { username: 'manager', password: 'manager123', role: 'manager' as UserRole, name: 'Morgan Swift' },
+  { username: 'chef', password: 'chef123', role: 'chef' as UserRole, name: 'Chef Marco' },
+  { username: 'waiter', password: 'waiter123', role: 'waiter' as UserRole, name: 'Alex Rivera' },
+  { username: 'billing', password: 'billing123', role: 'billing' as UserRole, name: 'Pat Kumar' },
 ];
 
 const initialAuditLogs: AuditLogEntry[] = [
@@ -109,21 +109,21 @@ export function RMSProvider({ children }: { children: ReactNode }) {
     addAuditLog({ user: 'Customer', role: 'customer', action: 'Submitted feedback', details: `Order ${fb.orderId} — ${fb.rating}★`, status: 'success' });
   }, [addAuditLog]);
 
-  const registerStaff = useCallback((employeeId: string, pin: string, role: UserRole, name: string): boolean => {
-    const exists = staffCredentials.find(c => c.employeeId === employeeId);
+  const registerStaff = useCallback((username: string, password: string, role: UserRole, name: string): boolean => {
+    const exists = staffCredentials.find(c => c.username === username);
     if (exists) return false;
-    setStaffCredentials(prev => [...prev, { employeeId, pin, role, name }]);
-    addAuditLog({ user: name, role, action: 'Staff registered', details: `Employee ID: ${employeeId}, Role: ${role}`, status: 'success' });
+    setStaffCredentials(prev => [...prev, { username, password, role, name }]);
+    addAuditLog({ user: name, role, action: 'Staff registered', details: `Username: ${username}, Role: ${role}`, status: 'success' });
     return true;
   }, [staffCredentials, addAuditLog]);
 
-  const authenticateStaff = useCallback((employeeId: string, pin: string, role: UserRole): { success: boolean; name: string } => {
-    const cred = staffCredentials.find(c => c.role === role && c.employeeId === employeeId && c.pin === pin);
+  const authenticateStaff = useCallback((username: string, password: string, role: UserRole): { success: boolean; name: string } => {
+    const cred = staffCredentials.find(c => c.role === role && c.username === username && c.password === password);
     if (cred) {
-      addAuditLog({ user: cred.name, role, action: 'PIN login successful', details: `Employee ID: ${employeeId}, Role: ${role}`, status: 'success' });
+      addAuditLog({ user: cred.name, role, action: 'Login successful', details: `Role: ${role}`, status: 'success' });
       return { success: true, name: cred.name };
     }
-    addAuditLog({ user: employeeId, role, action: 'PIN login failed', details: `Employee ID: ${employeeId}, Attempted role: ${role}`, status: 'failure' });
+    addAuditLog({ user: username, role, action: 'Login failed', details: `Attempted role: ${role}`, status: 'failure' });
     return { success: false, name: '' };
   }, [staffCredentials, addAuditLog]);
 

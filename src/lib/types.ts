@@ -42,11 +42,9 @@ export interface Table {
 
 export interface StaffMember {
   id: string;
-  employeeId: string;
   name: string;
   role: UserRole;
   email: string;
-  pin: string;
   active: boolean;
 }
 
@@ -81,8 +79,7 @@ export interface Promotion {
 }
 
 export interface RoleCredentials {
-  employeeId: string;
-  pin: string;
+  username: string;
+  password: string;
   role: UserRole;
-  name: string;
 }
