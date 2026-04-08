@@ -34,9 +34,9 @@ interface RMSContextType {
   addAuditLog: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
 
   // Staff credentials registry (for signup)
-  staffCredentials: { username: string; password: string; role: UserRole; name: string }[];
-  registerStaff: (username: string, password: string, role: UserRole, name: string) => boolean;
-  authenticateStaff: (username: string, password: string, role: UserRole) => { success: boolean; name: string };
+  staffCredentials: { employeeId: string; pin: string; role: UserRole; name: string }[];
+  registerStaff: (employeeId: string, pin: string, role: UserRole, name: string) => boolean;
+  authenticateStaff: (employeeId: string, pin: string, role: UserRole) => { success: boolean; name: string };
 
   // Tables
   tableStatuses: typeof mockTables;
