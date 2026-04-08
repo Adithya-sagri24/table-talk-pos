@@ -68,7 +68,7 @@ function AdminUsers() {
               </div>
               <div>
                 <p className="text-sm font-medium">{s.name}</p>
-                <p className="text-xs text-muted-foreground">{s.email}</p>
+                <p className="text-xs font-mono text-muted-foreground">{s.employeeId} · {s.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
