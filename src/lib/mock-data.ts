@@ -1,12 +1,11 @@
 import { Order, Table, MenuItem, StaffMember, DailyMetrics, InventoryItem, Promotion, RoleCredentials } from './types';
 
 export const roleCredentials: RoleCredentials[] = [
-  { username: 'admin', password: 'admin123', role: 'admin' },
-  { username: 'manager', password: 'manager123', role: 'manager' },
-  { username: 'chef', password: 'chef123', role: 'chef' },
-  { username: 'waiter', password: 'waiter123', role: 'waiter' },
-  { username: 'billing', password: 'billing123', role: 'billing' },
-  { username: 'customer', password: 'customer123', role: 'customer' },
+  { employeeId: 'EMP001', pin: '1234', role: 'admin', name: 'Admin Root' },
+  { employeeId: 'EMP002', pin: '2345', role: 'manager', name: 'Morgan Swift' },
+  { employeeId: 'EMP003', pin: '3456', role: 'chef', name: 'Chef Marco' },
+  { employeeId: 'EMP004', pin: '4567', role: 'waiter', name: 'Alex Rivera' },
+  { employeeId: 'EMP005', pin: '5678', role: 'billing', name: 'Pat Kumar' },
 ];
 
 export const menuItems: MenuItem[] = [
