@@ -621,3 +621,108 @@ function ManagerPromos() {
     </div>
   );
 }
+
+// ─── FEEDBACK ──────────────────────────────────────────────
+
+function ManagerFeedback() {
+  // Import feedback from CustomerContext is not possible here since it's a separate context.
+  // We'll show a standalone feedback view with mock data that mirrors the customer feedback structure.
+  const [feedbackData] = useState([
+    { id: 'f1', orderId: 'ORD-1001', customerName: 'John Doe', rating: 5, comment: 'Excellent food and quick service!', createdAt: new Date(Date.now() - 86400000) },
+    { id: 'f2', orderId: 'ORD-1002', customerName: 'Jane Smith', rating: 4, comment: 'Great ambiance, slightly slow delivery.', createdAt: new Date(Date.now() - 172800000) },
+    { id: 'f3', orderId: 'ORD-1003', customerName: 'Alex Johnson', rating: 3, comment: 'Food was okay, expected better seasoning.', createdAt: new Date(Date.now() - 259200000) },
+    { id: 'f4', orderId: 'ORD-1004', customerName: 'Sarah Lee', rating: 5, comment: 'Best dining experience ever! Will come again.', createdAt: new Date(Date.now() - 345600000) },
+    { id: 'f5', orderId: 'ORD-1005', customerName: 'Mike Brown', rating: 2, comment: 'Order was wrong and took too long to fix.', createdAt: new Date(Date.now() - 432000000) },
+    { id: 'f6', orderId: 'ORD-1006', customerName: 'Emily Davis', rating: 4, comment: 'Loved the desserts! Main course was good too.', createdAt: new Date(Date.now() - 518400000) },
+  ]);
+
+  const [search, setSearch] = useState('');
+  const [filterRating, setFilterRating] = useState<number | null>(null);
+
+  const filtered = feedbackData.filter(f => {
+    const matchesSearch = !search || f.customerName.toLowerCase().includes(search.toLowerCase()) || f.orderId.toLowerCase().includes(search.toLowerCase()) || f.comment.toLowerCase().includes(search.toLowerCase());
+    const matchesRating = filterRating === null || f.rating === filterRating;
+    return matchesSearch && matchesRating;
+  });
+
+  const avgRating = feedbackData.length > 0 ? (feedbackData.reduce((s, f) => s + f.rating, 0) / feedbackData.length).toFixed(1) : '0';
+
+  const ratingCounts = [5, 4, 3, 2, 1].map(r => ({ rating: r, count: feedbackData.filter(f => f.rating === r).length }));
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground">Customer Feedback</h2>
+        <p className="text-sm text-muted-foreground mt-1">View ratings and comments from customers</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card rounded-xl border border-border p-5">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Average Rating</p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-3xl font-bold text-foreground">{avgRating}</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map(s => (
+                <Star key={s} className={`h-4 w-4 ${s <= Math.round(Number(avgRating)) ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground/20'}`} />
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{feedbackData.length} total reviews</p>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-5 col-span-1 sm:col-span-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3">Rating Distribution</p>
+          <div className="space-y-1.5">
+            {ratingCounts.map(rc => (
+              <div key={rc.rating} className="flex items-center gap-2 text-sm">
+                <span className="w-3 text-muted-foreground">{rc.rating}</span>
+                <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-500 rounded-full transition-all" style={{ width: `${feedbackData.length > 0 ? (rc.count / feedbackData.length) * 100 : 0}%` }} />
+                </div>
+                <span className="text-xs text-muted-foreground w-6 text-right">{rc.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by customer, order, or comment..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        </div>
+        <select value={filterRating ?? ''} onChange={e => setFilterRating(e.target.value ? Number(e.target.value) : null)}
+          className="px-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+          <option value="">All Ratings</option>
+          {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} Star{r > 1 ? 's' : ''}</option>)}
+        </select>
+      </div>
+
+      {/* Feedback List */}
+      <div className="space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">No feedback found</div>
+        ) : filtered.map(fb => (
+          <div key={fb.id} className="bg-card rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className="font-semibold text-foreground">{fb.customerName}</p>
+                <p className="text-xs text-muted-foreground font-mono">{fb.orderId} · {fb.createdAt.toLocaleDateString()}</p>
+              </div>
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <Star key={s} className={`h-4 w-4 ${s <= fb.rating ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground/20'}`} />
+                ))}
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">{fb.comment}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
