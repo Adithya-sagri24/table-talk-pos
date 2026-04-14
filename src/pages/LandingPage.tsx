@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, ChefHat, Users, ShieldCheck, ArrowRight } from 'lucide-react';
+import { UtensilsCrossed, ChefHat, Users, ShieldCheck, ArrowRight, UserCircle } from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -14,12 +14,20 @@ export default function LandingPage() {
           </div>
           <span className="text-xl font-bold text-foreground tracking-tight">PlateSync</span>
         </div>
-        <button
-          onClick={() => navigate('/login')}
-          className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          Staff Access
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/customer')}
+            className="px-5 py-2.5 border border-border text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
+          >
+            Customer Access
+          </button>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Staff Access
+          </button>
+        </div>
       </header>
 
       {/* Hero */}
@@ -39,12 +47,20 @@ export default function LandingPage() {
             From kitchen to counter — orders, tables, billing, and analytics in one unified dashboard built for speed.
           </p>
 
-          <button
-            onClick={() => navigate('/login')}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-2xl text-base font-semibold hover:bg-primary/90 transition-all hover:gap-3 shadow-lg shadow-primary/20"
-          >
-            Staff Access <ArrowRight className="h-5 w-5" />
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => navigate('/login')}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-2xl text-base font-semibold hover:bg-primary/90 transition-all hover:gap-3 shadow-lg shadow-primary/20"
+            >
+              <ShieldCheck className="h-5 w-5" /> Staff Access <ArrowRight className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate('/customer')}
+              className="inline-flex items-center gap-2 px-8 py-4 border-2 border-primary text-primary rounded-2xl text-base font-semibold hover:bg-primary/10 transition-all hover:gap-3"
+            >
+              <UserCircle className="h-5 w-5" /> Customer Access <ArrowRight className="h-5 w-5" />
+            </button>
+          </div>
 
           {/* Feature cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8">
