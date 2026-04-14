@@ -21,7 +21,7 @@ import {
   LogOut,
 } from 'lucide-react';
 
-const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
+const roleConfig: Record<Exclude<UserRole, 'customer'>, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
   waiter: {
     label: 'Waiter',
     icon: UtensilsCrossed,
