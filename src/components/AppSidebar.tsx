@@ -67,17 +67,6 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
       { path: '/admin/logs', label: 'Audit Logs', icon: ClipboardList },
     ],
   },
-  customer: {
-    label: 'Customer',
-    icon: Users,
-    routes: [
-      { path: '/customer/menu', label: 'Menu', icon: UtensilsCrossed },
-      { path: '/customer/cart', label: 'Cart', icon: ShoppingCart },
-      { path: '/customer/orders', label: 'Orders', icon: ClipboardList },
-      { path: '/customer/reservations', label: 'Reservations', icon: CalendarDays },
-      { path: '/customer/feedback', label: 'Feedback', icon: Star },
-    ],
-  },
 };
 
 const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin'];
