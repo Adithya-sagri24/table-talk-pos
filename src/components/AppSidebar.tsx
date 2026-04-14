@@ -56,6 +56,7 @@ const roleConfig: Record<Exclude<UserRole, 'customer'>, { label: string; icon: t
       { path: '/manager/staff', label: 'Staff', icon: Users },
       { path: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
       { path: '/manager/promos', label: 'Promos', icon: Tag },
+      { path: '/manager/feedback', label: 'Feedback', icon: ClipboardList },
     ],
   },
   admin: {

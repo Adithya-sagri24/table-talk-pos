@@ -23,6 +23,7 @@ export default function ManagerDashboard() {
   if (path === '/manager/staff') return <ManagerStaff />;
   if (path === '/manager/analytics') return <ManagerAnalytics />;
   if (path === '/manager/promos') return <ManagerPromos />;
+  if (path === '/manager/feedback') return <ManagerFeedback />;
 
   return <ManagerOverview />;
 }
