@@ -9,7 +9,7 @@ import { Order, MenuItem, InventoryItem, StaffMember, OrderStatus } from '@/lib/
 import {
   Clock, ClipboardList, Grid3X3, TrendingUp, AlertTriangle, Package,
   Users, DollarSign, ShoppingBag, Plus, Pencil, Trash2, Search, Eye,
-  UtensilsCrossed, Tag, BarChart3,
+  UtensilsCrossed, Tag, BarChart3, Star,
 } from 'lucide-react';
 
 export default function ManagerDashboard() {
