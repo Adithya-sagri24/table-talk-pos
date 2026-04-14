@@ -18,13 +18,10 @@ import {
   Grid3X3,
   Menu,
   X,
-  ShoppingCart,
-  CalendarDays,
-  Star,
-  History,
+  LogOut,
 } from 'lucide-react';
 
-const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
+const roleConfig: Record<Exclude<UserRole, 'customer'>, { label: string; icon: typeof LayoutDashboard; routes: { path: string; label: string; icon: typeof LayoutDashboard }[] }> = {
   waiter: {
     label: 'Waiter',
     icon: UtensilsCrossed,
@@ -70,20 +67,9 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof LayoutDashboard
       { path: '/admin/logs', label: 'Audit Logs', icon: ClipboardList },
     ],
   },
-  customer: {
-    label: 'Customer',
-    icon: Users,
-    routes: [
-      { path: '/customer/menu', label: 'Menu', icon: UtensilsCrossed },
-      { path: '/customer/cart', label: 'Cart', icon: ShoppingCart },
-      { path: '/customer/orders', label: 'Orders', icon: ClipboardList },
-      { path: '/customer/reservations', label: 'Reservations', icon: CalendarDays },
-      { path: '/customer/feedback', label: 'Feedback', icon: Star },
-    ],
-  },
 };
 
-const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin', 'customer'];
+const allRoles: UserRole[] = ['waiter', 'chef', 'billing', 'manager', 'admin'];
 
 export function AppSidebar() {
   const { role, setRole } = useRole();
@@ -95,12 +81,6 @@ export function AppSidebar() {
 
   const handleRoleSwitch = (newRole: UserRole) => {
     if (newRole === role) return;
-    if (newRole === 'customer') {
-      // Customer has its own auth — just navigate
-      setRole(newRole);
-      navigate('/customer/menu');
-      return;
-    }
     setLoginTarget(newRole);
   };
 
@@ -187,6 +167,17 @@ export function AppSidebar() {
               );
             })}
           </div>
+        </div>
+
+        {/* Logout */}
+        <div className="border-t border-border p-3">
+          <button
+            onClick={() => navigate('/')}
+            className="w-full flex items-center gap-2 px-3 py-2 text-left rounded-lg transition-all text-sm text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Logout</span>}
+          </button>
         </div>
       </aside>
 

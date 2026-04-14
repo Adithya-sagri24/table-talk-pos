@@ -31,6 +31,7 @@ interface CustomerContextType {
   login: (email: string, password: string) => boolean;
   signup: (name: string, email: string, phone: string, password: string) => boolean;
   logout: () => void;
+  updateProfile: (data: { name: string; email: string; phone: string }) => void;
   cart: OrderItem[];
   addToCart: (item: MenuItem, quantity?: number) => void;
   updateCartQuantity: (menuItemId: string, quantity: number) => void;
@@ -83,6 +84,12 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setCustomer(null);
     setCart([]);
+  };
+
+  const updateProfile = (data: { name: string; email: string; phone: string }) => {
+    if (customer) {
+      setCustomer({ ...customer, ...data });
+    }
   };
 
   const addToCart = (item: MenuItem, quantity = 1) => {
@@ -150,7 +157,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
 
   return (
     <CustomerContext.Provider value={{
-      customer, isLoggedIn: !!customer, login, signup, logout,
+      customer, isLoggedIn: !!customer, login, signup, logout, updateProfile,
       cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal,
       customerOrders, placeOrder,
       reservations, makeReservation, cancelReservation,
