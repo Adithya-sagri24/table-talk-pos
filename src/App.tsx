@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import { AppLayout } from "@/components/AppLayout";
+import LandingPage from "./pages/LandingPage";
+import StaffLogin from "./pages/StaffLogin";
 import WaiterDashboard from "./pages/WaiterDashboard";
 import ChefDashboard from "./pages/ChefDashboard";
 import BillingDashboard from "./pages/BillingDashboard";
@@ -24,21 +26,23 @@ const App = () => (
       <BrowserRouter>
         <RoleProvider>
           <CustomerProvider>
-            <AppLayout>
-              <Routes>
-                <Route path="/" element={<Navigate to="/manager" replace />} />
-                <Route path="/waiter" element={<WaiterDashboard />} />
-                <Route path="/waiter/orders" element={<WaiterDashboard />} />
-                <Route path="/chef" element={<ChefDashboard />} />
-                <Route path="/billing" element={<BillingDashboard />} />
-                <Route path="/manager" element={<ManagerDashboard />} />
-                <Route path="/manager/*" element={<ManagerDashboard />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/*" element={<AdminDashboard />} />
-                <Route path="/customer/*" element={<CustomerDashboard />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppLayout>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<StaffLogin />} />
+
+              {/* Dashboard routes with sidebar layout */}
+              <Route path="/waiter" element={<AppLayout><WaiterDashboard /></AppLayout>} />
+              <Route path="/waiter/orders" element={<AppLayout><WaiterDashboard /></AppLayout>} />
+              <Route path="/chef" element={<AppLayout><ChefDashboard /></AppLayout>} />
+              <Route path="/billing" element={<AppLayout><BillingDashboard /></AppLayout>} />
+              <Route path="/manager" element={<AppLayout><ManagerDashboard /></AppLayout>} />
+              <Route path="/manager/*" element={<AppLayout><ManagerDashboard /></AppLayout>} />
+              <Route path="/admin" element={<AppLayout><AdminDashboard /></AppLayout>} />
+              <Route path="/admin/*" element={<AppLayout><AdminDashboard /></AppLayout>} />
+              <Route path="/customer/*" element={<CustomerDashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </CustomerProvider>
         </RoleProvider>
       </BrowserRouter>
