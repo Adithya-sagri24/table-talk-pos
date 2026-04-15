@@ -4,6 +4,7 @@ import { useCustomer } from '@/contexts/CustomerContext';
 import { LogIn, UserPlus, AlertCircle, UtensilsCrossed, ArrowLeft } from 'lucide-react';
 
 export default function CustomerAuth() {
+  const navigate = useNavigate();
   const { login, signup } = useCustomer();
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
