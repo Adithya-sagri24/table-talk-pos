@@ -51,7 +51,7 @@ export default function StaffLogin() {
         {/* Back */}
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors flex-row gap-[10px] flex items-center justify-start rounded-lg shadow-md"
         >
           <ArrowLeft className="h-4 w-4" /> Back to home
         </button>
