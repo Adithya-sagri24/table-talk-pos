@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/contexts/CustomerContext';
-import { LogIn, UserPlus, AlertCircle, UtensilsCrossed } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle, UtensilsCrossed, ArrowLeft } from 'lucide-react';
 
 export default function CustomerAuth() {
   const { login, signup } = useCustomer();
