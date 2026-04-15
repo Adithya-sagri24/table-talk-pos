@@ -47,14 +47,13 @@ export default function StaffLogin() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground transition-colors flex-row flex items-center justify-start gap-[10px] border-none shadow-md rounded-lg"
+      >
+        <ArrowLeft className="h-4 w-4" /> Back to Home
+      </button>
       <div className="w-full max-w-md">
-        {/* Back */}
-        <button
-          onClick={() => navigate('/')}
-          className="text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors flex-row gap-[10px] flex items-center justify-start rounded-lg shadow-md"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to home
-        </button>
 
         <div className="bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
           {/* Header */}
