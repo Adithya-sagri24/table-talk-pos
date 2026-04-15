@@ -95,7 +95,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <aside className={`${collapsed ? 'w-16' : 'w-60'} min-h-screen bg-card border-r border-border flex flex-col shrink-0 transition-all duration-300`}>
+      <aside className={`${collapsed ? 'w-16' : 'w-60'} h-screen bg-card border-r border-border flex flex-col shrink-0 transition-all duration-300 sticky top-0 overflow-y-auto`}>
         {/* Logo */}
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed && (
