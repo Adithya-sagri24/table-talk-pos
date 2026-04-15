@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/contexts/CustomerContext';
-import { LogIn, UserPlus, AlertCircle, UtensilsCrossed } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle, UtensilsCrossed, ArrowLeft } from 'lucide-react';
 
 export default function CustomerAuth() {
+  const navigate = useNavigate();
   const { login, signup } = useCustomer();
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
@@ -27,6 +29,9 @@ export default function CustomerAuth() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <button onClick={() => navigate('/')} className="absolute top-6 left-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-4 w-4" /> Back to Home
+      </button>
       <div className="bg-card rounded-xl shadow-lg w-full max-w-md overflow-hidden">
         <div className="bg-primary/5 px-6 py-8 text-center border-b border-border">
           <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4">
