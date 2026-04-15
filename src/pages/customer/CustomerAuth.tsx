@@ -29,7 +29,7 @@ export default function CustomerAuth() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <button onClick={() => navigate('/')} className="absolute top-6 left-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <button onClick={() => navigate('/')} className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground transition-colors flex-row flex items-center justify-start gap-[10px] border-none shadow-md rounded-lg px-4 py-2 bg-card">
         <ArrowLeft className="h-4 w-4" /> Back to Home
       </button>
       <div className="bg-card rounded-xl shadow-lg w-full max-w-md overflow-hidden">
